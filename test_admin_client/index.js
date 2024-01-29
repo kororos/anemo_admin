@@ -13,7 +13,7 @@ const selectCommand = {
   choices: [
     { title: "Connect", value: "Connect" },
     { title: "Disconnect", value: "Disconnect" },
-    { title: "Get latest version", value: "Get latest version" },
+    { title: "Restart client", value: "Restart client" },
   ],
 };
 
@@ -31,27 +31,22 @@ async function askCont() {
   }
 }
 
-async function connectWs(clientId) {
+async function connectWs() {
   if (wsClient == undefined) {
-    wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${clientId}`);
+    wsClient = new WebSocket(`ws://localhost:3001/ws/admin?clientId=admin`);
   } else {
     if (wsClient.readyState === WebSocket.OPEN)
       console.log("Connection already open");
-    else wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${clientId}`);
+    else
+      wsClient = new WebSocket(`ws://localhost:3001/ws/admin?clientId=admin`);
   }
   wsClient.on("open", () => console.log("Connected"));
   wsClient.on("close", () => console.log("Disconnected"));
-  wsClient.on("message", (data) => {
-    console.log("Got the following data: ", data.toString());
-    switch (data){
-      case "restart" :
-        wsClient.close();
-        wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${clientId}`);
-    }
-  }
+  wsClient.on("message", (data) =>
+    console.log("Got the following data: ", data.toString())
   );
   wsClient.on("error", (err) => {
-      console.log(`Error ${err}WebSocket`);
+    console.log(`Error ${err}WebSocket`);
   });
 }
 
@@ -59,8 +54,12 @@ function sendCommand(command) {
   wsClient.send(command);
 }
 
-function getLatestVersion() {
-  sendCommand("getVer");
+function getLatestVersion(uuid) {
+    const command = {
+        command: "restart",
+        uuid: uuid
+    }
+    sendCommand(JSON.stringify(command));
 }
 
 async function ask() {
@@ -68,17 +67,16 @@ async function ask() {
   switch (command) {
     case "Connect":
       console.log("\nWill now connect to websocket server");
-      const clientId = await input(clientIdQuestion);
-      console.log(`ClientId is: ${clientId}`);
-      await connectWs(clientId);
+      await connectWs();
       break;
     case "Disconnect":
       console.log("\nWill now Disconnect from websocket server");
       wsClient.close();
       break;
-    case "Get latest version":
+    case "Restart client":
+      const clientId = await input(clientIdQuestion);
       console.log("\nWill now get latest version info");
-      getLatestVersion();
+      getLatestVersion(clientId);
       break;
     default:
       console.log("\nUnknown command");
