@@ -7,7 +7,7 @@ const clients = new Map();
 function startAnemoWebSocketServer() {
   let count = 0;
   const wss = new WebSocketServer({ port: 3000, path: "/ws/anemometer" });
-
+  console.log("WebSocket server for anemometers is running on port 3000");
   wss.on("connection", (ws, req) => {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
       .searchParams;
@@ -44,7 +44,10 @@ function startAnemoWebSocketServer() {
   setInterval(() => sendMessage(), 1000);
 }
 function sendCommand(command){
-  clients.get(command.uuid).ws.send(command.command);
+  console.log(JSON.stringify(command));
+  const client = clients.get(command.uuid);
+  console.log(`Client is: ${command.uuid}`);
+  client.ws.send(command.command);
 }
 
 export { startAnemoWebSocketServer, sendCommand }; 

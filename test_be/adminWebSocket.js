@@ -8,7 +8,7 @@ const clients = new Map();
 function startAdminWebSocketServer() {
   let count = 0;
   const wss = new WebSocketServer({ port: 3001, path: "/ws/admin" });
-
+  console.log("WebSocket server for admin is running on port 3001");
   wss.on("connection", (ws, req) => {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
       .searchParams;
@@ -20,7 +20,6 @@ function startAdminWebSocketServer() {
     );
     ws.on("message", (message) => {
       const command = JSON.parse(message);
-      console.log(`Received message: ${command}`);
       sendCommand(command);
       // Handle the received message here
     });

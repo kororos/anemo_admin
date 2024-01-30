@@ -1,5 +1,6 @@
 import { confirm, select, input } from "@inquirer/prompts";
 import WebSocket from "ws";
+import axios from "axios";
 
 let wsClient;
 const questions = {
@@ -54,6 +55,21 @@ function sendCommand(command) {
   wsClient.send(command);
 }
 
+function restartClient(uuid){
+    const url = 'http://localhost:3010/api/restart';
+    const data = { 
+        uuid: uuid 
+    };
+
+    axios.post(url, data)
+        .then(response => {
+            console.log(response.data);
+        })
+        .catch(error => {
+            console.error(`Error: ${error}`);
+        });
+}
+
 function getLatestVersion(uuid) {
     const command = {
         command: "restart",
@@ -76,7 +92,9 @@ async function ask() {
     case "Restart client":
       const clientId = await input(clientIdQuestion);
       console.log("\nWill now get latest version info");
-      getLatestVersion(clientId);
+      //getLatestVersion(clientId);
+      restartClient(clientId);
+
       break;
     default:
       console.log("\nUnknown command");
