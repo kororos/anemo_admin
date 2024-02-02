@@ -41,12 +41,12 @@ async function connectWs(clientId) {
   }
   wsClient.on("open", () => console.log("Connected"));
   wsClient.on("close", () => console.log("Disconnected"));
-  wsClient.on("message", (data) => {
+  wsClient.on("message", async (data) => {
     console.log("Got the following data: ", data.toString());
-    switch (data){
+    switch (data.toString()){
       case "restart" :
-        wsClient.close();
-        wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${clientId}`);
+        await wsClient.close();
+        connectWs(clientId);
     }
   }
   );

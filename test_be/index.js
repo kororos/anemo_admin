@@ -1,4 +1,5 @@
 import express from 'express';
+import routes from './router/router.js';
 import { startAnemoWebSocketServer, sendCommand as sendAnemoCommand } from "./anemoWebSocket.js";
 import { startAdminWebSocketServer } from "./adminWebSocket.js";
 
@@ -10,25 +11,9 @@ const app = express();
 
 // Use express.json() middleware to parse JSON requests
 app.use(express.json());
+app.use(routes);
 
 
-// 3. create a route to handle post messages at '/api/restart
-app.post('/api/restart', (req, res, next) => {
-    // Restart logic goes here
-    const uuid = req.body.uuid;
-    // If an error occurs, pass it to the next middleware
-    try {
-        // Restart logic
-        const command = {
-            command: "restart",
-            uuid: uuid
-        }
-        sendAnemoCommand(command);
-        res.send('Server restarted successfully');
-    } catch (error) {
-        next(error);
-    }
-});
 
 // 4. create a middleware to handle errors
 app.use((err, req, res, next) => {
