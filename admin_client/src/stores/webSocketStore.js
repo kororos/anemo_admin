@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 export const useWebSocketStore = defineStore("webSocket", () => {
-  const clients = ref(new Map());
+  const clients = ref(new Array());
   const socket = ref(null);
   function initializeWebSocket() {
     if(!socket.value){
@@ -36,7 +36,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
     if(message.command === "updateClients"){
       clients.value = message.clients;
     } else if(message.command === "getClientsMap"){
-      clients.value = message.clientsMap;
+      clients.value = message.clientsArray;
     }
   }
 

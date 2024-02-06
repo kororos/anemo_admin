@@ -22,7 +22,7 @@ function startAnemoWebSocketServer() {
     
     sendAdminCommandToAll({
       command: "getClientsMap",
-      clientsMap: Object.fromEntries(clients.entries())
+      clientsArray: getClientsArray()
     });
 
     ws.on("message", (message) => {
@@ -36,7 +36,8 @@ function startAnemoWebSocketServer() {
       console.log(`Client with uuid: ${uuid} disconnected`);
       sendAdminCommandToAll({
         command: "getClientsMap",
-        clientsMap: Object.fromEntries(clients.entries())
+        //clientsMap: Object.fromEntries(clients.entries())
+        clientsArray: getClientsArray()
       });
     });
 
@@ -65,6 +66,20 @@ function sendCommand(command){
 function getClientsMap(){
   console.log("Clients are: ", clients.keys());
   return clients;
+}
+
+function getClientsArray(){
+  const readyStateMap = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+  const clientsArray = new Array();
+  clients.forEach((client, key) => {
+    clientsArray.push({
+      clientId: client.clientId,
+      uuid: key,
+      status: client.ws.readyState,
+      statusText: readyStateMap[client.ws.readyState]
+    })
+  });
+  return clientsArray;
 }
 
 export { startAnemoWebSocketServer, sendCommand, getClientsMap }; 
