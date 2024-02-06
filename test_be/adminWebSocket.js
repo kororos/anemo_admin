@@ -35,14 +35,16 @@ function startAdminWebSocketServer() {
       `Welcome to the WebSocket server! ClientId: ${clientId} and uuid: ${uuid}`
     );
   });
-
-  function sendMessage() {
-    if (clients.size > 0) count++;
-    clients.forEach(({ clientId, ws }) => {
-      ws.send(`You are client ${clientId}, count= ${count}`);
-    });
-  }
-
 }
 
-export { startAdminWebSocketServer };
+function sendAdminCommand(uuid, command) {
+  clients.get(uuid).ws.send(JSON.stringify(command));
+}
+
+function sendAdminCommandToAll(command){
+  clients.forEach(({ ws }) => {
+    ws.send(JSON.stringify(command));
+  });
+}
+
+export { startAdminWebSocketServer, sendAdminCommand, sendAdminCommandToAll };

@@ -15,6 +15,7 @@ const selectCommand = {
     { title: "Connect", value: "Connect" },
     { title: "Disconnect", value: "Disconnect" },
     { title: "Restart client", value: "Restart client" },
+    { title: "Get clientsMap", value: "getClientsMap" },
   ],
 };
 
@@ -78,8 +79,24 @@ function getLatestVersion(uuid) {
     sendCommand(JSON.stringify(command));
 }
 
+function _getClientsMap(uuid){
+  const url = 'http://localhost:3010/api/getClients';
+  const data = { 
+      uuid: uuid 
+  };
+
+  axios.post(url, data)
+      .then(response => {
+          console.log(response.data);
+      })
+      .catch(error => {
+          console.error(`Error: ${error}`);
+      });
+}
+
 async function ask() {
   const command = await select(selectCommand);
+  let clientId;
   switch (command) {
     case "Connect":
       console.log("\nWill now connect to websocket server");
@@ -90,12 +107,16 @@ async function ask() {
       wsClient.close();
       break;
     case "Restart client":
-      const clientId = await input(clientIdQuestion);
+      clientId = await input(clientIdQuestion);
       console.log("\nWill now get latest version info");
       //getLatestVersion(clientId);
       restartClient(clientId);
 
       break;
+    case "getClientsMap":
+      console.log("\nWill now get clientsMap");
+      clientId = await input(clientIdQuestion);
+      _getClientsMap(clientId);
     default:
       console.log("\nUnknown command");
       break;

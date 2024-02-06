@@ -2,6 +2,8 @@ import { WebSocketServer } from "ws";
 import url from "url";
 import { v4 as uuidv4 } from "uuid";
 
+import { sendAdminCommandToAll } from "./adminWebSocket.js";
+
 const clients = new Map();
 
 function startAnemoWebSocketServer() {
@@ -17,6 +19,12 @@ function startAnemoWebSocketServer() {
     console.log(
       `Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
     );
+    
+    sendAdminCommandToAll({
+      command: "getClientsMap",
+      clientsMap: Object.fromEntries(clients.entries())
+    });
+
     ws.on("message", (message) => {
       console.log(`Received message: ${message.toString()} and uuid: ${uuid}`);
       // Handle the received message here
@@ -26,6 +34,10 @@ function startAnemoWebSocketServer() {
       // Handle client disconnection here
       clients.delete(uuid);
       console.log(`Client with uuid: ${uuid} disconnected`);
+      sendAdminCommandToAll({
+        command: "getClientsMap",
+        clientsMap: Object.fromEntries(clients.entries())
+      });
     });
 
     // Send a welcome message to the client
@@ -50,4 +62,9 @@ function sendCommand(command){
   client.ws.send(command.command);
 }
 
-export { startAnemoWebSocketServer, sendCommand }; 
+function getClientsMap(){
+  console.log("Clients are: ", clients.keys());
+  return clients;
+}
+
+export { startAnemoWebSocketServer, sendCommand, getClientsMap }; 
