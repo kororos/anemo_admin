@@ -14,10 +14,12 @@ function startAnemoWebSocketServer() {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
       .searchParams;
     const clientId = parameters.get("clientId");
+    const hwVersion = parameters.get("hwVersion");
+    const swVersion = parameters.get("swVersion");
     const uuid = uuidv4();
-    clients.set(uuid, { clientId: clientId, ws: ws });
+    clients.set(uuid, { clientId: clientId, hwVersion: hwVersion, swVersion:swVersion, ws: ws });
     console.log(
-      `Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
+      `Client with ClientId: ${clientId}, hwVersion: ${hwVersion} and uuid: ${uuid} CONNECTED`
     );
     
     sendAdminCommandToAll({
@@ -76,10 +78,12 @@ function getClientsArray(){
       clientId: client.clientId,
       uuid: key,
       status: client.ws.readyState,
-      statusText: readyStateMap[client.ws.readyState]
+      statusText: readyStateMap[client.ws.readyState],
+      hwVersion: client.hwVersion,
+      swVersion: client.swVersion
     })
   });
   return clientsArray;
 }
 
-export { startAnemoWebSocketServer, sendCommand, getClientsMap }; 
+export { startAnemoWebSocketServer, sendCommand, getClientsMap, getClientsArray }; 

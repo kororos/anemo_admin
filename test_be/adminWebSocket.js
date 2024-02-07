@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { sendCommand } from "./anemoWebSocket.js";
+import { sendCommand, getClientsArray } from "./anemoWebSocket.js";
 import url from "url";
 import { v4 as uuidv4 } from "uuid";
 
@@ -34,6 +34,11 @@ function startAdminWebSocketServer() {
     ws.send(
       `Welcome to the WebSocket server! ClientId: ${clientId} and uuid: ${uuid}`
     );
+    sendAdminCommandToAll({
+      command: "getClientsMap",
+      //clientsMap: Object.fromEntries(clients.entries())
+      clientsArray: getClientsArray()
+    });
   });
 }
 

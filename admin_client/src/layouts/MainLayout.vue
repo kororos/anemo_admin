@@ -14,7 +14,9 @@
         <q-toolbar-title>
           Quasar App
         </q-toolbar-title>
-
+        <div>
+          <WebSocketStateIcon />
+        </div>
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
@@ -49,6 +51,7 @@
 import { ref, onMounted } from 'vue';
 import EssentialLink from 'components/EssentialLink.vue';
 import { useWebSocketStore } from '../stores/webSocketStore.js';
+import WebSocketStateIcon from 'src/components/WebSocketStateIcon.vue';
 
 const linksList = [
   {
