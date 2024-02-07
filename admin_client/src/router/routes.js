@@ -8,6 +8,13 @@ const routes = [
     ]
   },
 
+  {
+    path: '/uploadFirmware',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/UploadFirmware.vue') }
+    ]
+  },
   // Always leave this as last one,
   // but you can also remove it
   {
