@@ -16,6 +16,7 @@ const selectCommand = {
     { title: "Disconnect", value: "Disconnect" },
     { title: "Restart client", value: "Restart client" },
     { title: "Get clientsMap", value: "getClientsMap" },
+    { title: "Get firmware info", value: "getFirmwareInfo"}
   ],
 };
 
@@ -94,6 +95,18 @@ function _getClientsMap(uuid){
       });
 }
 
+function _getFirmwareInfo(){
+  const url = 'http://localhost:3010/api/getFirmwareInfo';
+  axios.get(url)
+      .then(response => {
+          console.log(response.data);
+      })
+      .catch(error => {
+          console.error(`Error: ${error}`);
+      });
+}
+
+
 async function ask() {
   const command = await select(selectCommand);
   let clientId;
@@ -117,6 +130,10 @@ async function ask() {
       console.log("\nWill now get clientsMap");
       clientId = await input(clientIdQuestion);
       _getClientsMap(clientId);
+    
+    case "getFirmwareInfo":
+        console.log("\nWill now get firmware info");
+        _getFirmwareInfo();
     default:
       console.log("\nUnknown command");
       break;

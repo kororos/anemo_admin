@@ -1,9 +1,7 @@
 import  express from 'express';
-import multer from 'multer';
 import { sendCommand as sendAnemoCommand, getClientsMap} from "../anemoWebSocket.js";
 import { sendAdminCommand } from "../adminWebSocket.js";
 const routes = express.Router();
-const upload = multer();
 routes.post('/api/restart', (req, res, next) => {
     // Restart logic goes here
     const uuid = req.body.uuid;
@@ -40,22 +38,6 @@ routes.post('/api/getClients', (req, res, next) => {
     }
 });
 
-routes.post('/api/firmwareUpload', upload.single('file'), (req, res, next) => {
-    // # handle form data
-    
-    // # handle file upload
-    const file = req.file;
-    console.log("file: ", file);
-    // Process the uploaded file here
-    const hwVersion = req.body.hwVersion;
-    console.log("hwVersion: ", hwVersion);
 
-    const swVersion = req.body.swVersion;
-    console.log("swVersion: ", swVersion);
-    // Process the uploaded firmware here
-    
-    // # send response
-    res.send('Firmware uploaded and updated successfully');
-});
     
 export default routes;

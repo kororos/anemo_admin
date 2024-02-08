@@ -1,5 +1,13 @@
 <template>
-  <q-icon :name="iconName()" :color="iconName() === 'check_circle' ? 'green' : 'red'" />
+  <div>
+  <q-icon :name="iconName()" :color="iconName() === 'check_circle' ? 'green' : 'red'" >
+    <template v-slot:default>
+      <q-tooltip content="WebSocket State" anchor="bottom middle">
+        {{ store.adminSocketReadyState === 1 ? "Connected" : "Disconnected" }}
+      </q-tooltip>
+      </template>
+  </q-icon>
+</div>
 </template>
 
 <script setup>

@@ -12,10 +12,10 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          Anemometer
         </q-toolbar-title>
         <div>
-          <WebSocketStateIcon />
+          <web-socket-state-icon class="q-pr-md" />
         </div>
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
