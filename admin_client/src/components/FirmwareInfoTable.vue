@@ -16,7 +16,7 @@ const firmwareInfo = ref([]);
 const columns = ref([
   { name: 'HwVersion', required: true, label: 'Hardware Version', align: 'left', field: 'hwVersion', sortable: true },
   { name: 'SwVersion', required: true, label: 'Firmware Version', align: 'left', field: 'swVersion', sortable: true },
-  { name: 'action', required: true, label: 'Delete', align: 'left' }
+  { name: 'action', required: true,  align: 'left' }
 ]);
 
 async function populateVersions() {
