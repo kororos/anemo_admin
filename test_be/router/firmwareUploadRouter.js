@@ -38,4 +38,19 @@ routes.post('/api/firmwareUpload', upload.single('file'), (req, res, next) => {
     res.send('Firmware uploaded and updated successfully');
 });
 
+// Create a post route at /api/deleteFirmware
+routes.post('/api/deleteFirmware', (req, res) => {
+    // get the full version from the body
+    const version = req.body.version;
+    console.log("version: ", version);
+    //delete the contents of the folder named version
+    const dir = `uploads/${version}`;
+    if (fs.existsSync(dir)){
+        fs.rmSync(dir, { recursive: true });
+    }
+
+    // # send response
+    res.send('Firmware deleted successfully');
+});
+
 export default routes;
