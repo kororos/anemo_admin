@@ -1,6 +1,6 @@
 <template>
-  <div class="q-pa-md" style="max-width: 400px;">
-    <q-form @submit="submitForm" class="q-gutter-md">
+  <div class="q-pa-md">
+    <q-form @submit.prevent="submitForm" class="q-gutter-md">
       <q-input v-model="hwVersion" label="Hardware Version" outlined dense></q-input>
       <q-input v-model="swVersion" label="Software Version" outlined dense></q-input>
       <q-file dense outlined bottom-slots v-model="path" label="Firmware File" counter>
@@ -23,11 +23,14 @@
 <script setup>
 import { ref } from 'vue';
 import { api } from '../boot/axios.js';
+import {useWebSocketStore} from 'src/stores/webSocketStore';
 
+const store = useWebSocketStore();
 const hwVersion = ref('');
 const swVersion = ref('');
 const path = ref(null);
 const uploadProgress = ref(0);
+
 
 function enabled() {
   return hwVersion.value && swVersion.value && path.value;
@@ -49,8 +52,13 @@ async function submitForm() {
       }
     });
     console.log(response);
+    store.firmwareUploaded();
+    hwVersion.value = '';
+    swVersion.value = '';
+    path.value = null;
   } catch (error) {
     console.error(error);
   }
+
 }
 </script>

@@ -9,9 +9,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watchEffect } from 'vue';
 import { api } from '../boot/axios.js';
+import { useWebSocketStore } from '../stores/webSocketStore.js';
 
+const store = useWebSocketStore();
 const firmwareInfo = ref([]);
 const columns = ref([
   { name: 'HwVersion', required: true, label: 'Hardware Version', align: 'left', field: 'hwVersion', sortable: true },
@@ -52,6 +54,13 @@ async function performAction(row) {
     // Refresh the table after the delete operation
     firmwareInfo.value = [];
     populateVersions();
-
 }
+
+watchEffect(() => {
+  if(store.formSubmitted) {
+    firmwareInfo.value = [];
+    populateVersions();
+    store.formSubmitted = false;
+  }
+});
 </script>
