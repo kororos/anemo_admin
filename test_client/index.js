@@ -21,6 +21,14 @@ const clientIdQuestion = {
   message: "Enter clientId",
 };
 
+const hwVersionQuestion = {
+  message: "Enter HW version",
+};
+
+const swVersionQuestion = {
+  message: "Enter current SW version",
+};
+
 async function askCont() {
   const answers = await confirm(questions);
   if (answers) {
@@ -31,13 +39,13 @@ async function askCont() {
   }
 }
 
-async function connectWs(clientId) {
+async function connectWs(data) {
   if (wsClient == undefined) {
-    wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${clientId}`);
+    wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
   } else {
     if (wsClient.readyState === WebSocket.OPEN)
       console.log("Connection already open");
-    else wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${clientId}`);
+    else wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
   }
   wsClient.on("open", () => console.log("Connected"));
   wsClient.on("close", () => console.log("Disconnected"));
@@ -69,8 +77,16 @@ async function ask() {
     case "Connect":
       console.log("\nWill now connect to websocket server");
       const clientId = await input(clientIdQuestion);
-      console.log(`ClientId is: ${clientId}`);
-      await connectWs(clientId);
+      const hwVersion = await input(hwVersionQuestion);
+      const swVersion = await input(swVersionQuestion);
+
+      const data = {
+        clientId: clientId,
+        hwVersion: hwVersion,
+        swVersion: swVersion,
+      };
+      
+      await connectWs(data);
       break;
     case "Disconnect":
       console.log("\nWill now Disconnect from websocket server");

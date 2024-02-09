@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
-      <q-toolbar>
+      <q-toolbar >
         <q-btn
           flat
           dense
@@ -12,11 +12,15 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          Anemometer
         </q-toolbar-title>
-
+        <div>
+          <web-socket-state-icon class="q-pr-md" />
+        </div>
         <div>Quasar v{{ $q.version }}</div>
+        <div> <q-toggle v-model="darkMode" color="yellow"  label="Dark Mode" /> </div>
       </q-toolbar>
+
     </q-header>
 
     <q-drawer
@@ -46,9 +50,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useQuasar } from 'quasar'
+
 import EssentialLink from 'components/EssentialLink.vue';
 import { useWebSocketStore } from '../stores/webSocketStore.js';
+import WebSocketStateIcon from 'src/components/WebSocketStateIcon.vue';
 
 const linksList = [
   {
@@ -96,6 +103,13 @@ const linksList = [
 ]
 const leftDrawerOpen = ref(false)
 const essentialLinks = ref(linksList);
+const darkMode = ref(false);
+const $q = useQuasar();
+
+watch(darkMode, (value) => {
+  $q.dark.set(value);
+})
+
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
@@ -106,3 +120,9 @@ onMounted(() => {
 })
 
 </script>
+
+<style scoped>
+q-toolbar.body--dark {
+  background: #684949
+}
+</style>

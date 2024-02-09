@@ -2,7 +2,6 @@ import  express from 'express';
 import { sendCommand as sendAnemoCommand, getClientsMap} from "../anemoWebSocket.js";
 import { sendAdminCommand } from "../adminWebSocket.js";
 const routes = express.Router();
-
 routes.post('/api/restart', (req, res, next) => {
     // Restart logic goes here
     const uuid = req.body.uuid;
@@ -39,4 +38,6 @@ routes.post('/api/getClients', (req, res, next) => {
     }
 });
 
+
+    
 export default routes;

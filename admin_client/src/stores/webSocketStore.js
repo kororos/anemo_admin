@@ -1,16 +1,18 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 
 export const useWebSocketStore = defineStore("webSocket", () => {
   const clients = ref(new Array());
   const socket = ref(null);
   const reconnectInterval = 5000;
+  const adminSocketReadyState = ref(0);
   function initializeWebSocket() {
     if(!socket.value){
       socket.value = new WebSocket("ws://localhost:3001/ws/admin?clientId=admin");
     }
     socket.value.onopen = () => {
-      console.log("WebSocket connection opened");
+      console.log("WebSocket connection opened. Ready state: ", socket.value.readyState);
+      adminSocketReadyState.value = 1;
     };
     socket.value.onmessage = (event) => {
       // Handle the received message here
@@ -20,6 +22,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
     socket.value.onclose = () => {
       console.log("WebSocket connection closed");
       setTimeout(initializeWebSocket, reconnectInterval);
+      adminSocketReadyState.value = 3;
     };
     socket.value.onerror = (error) => {
       console.error(`WebSocket error: ${error}`);
@@ -44,6 +47,8 @@ export const useWebSocketStore = defineStore("webSocket", () => {
 
   return {
     initializeWebSocket,
-    clients
+    clients,
+    socket,
+    adminSocketReadyState
   };
 });
