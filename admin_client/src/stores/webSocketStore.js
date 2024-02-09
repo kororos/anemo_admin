@@ -7,9 +7,8 @@ export const useWebSocketStore = defineStore("webSocket", () => {
   const reconnectInterval = 5000;
   const adminSocketReadyState = ref(0);
   function initializeWebSocket() {
-    if(!socket.value){
-      socket.value = new WebSocket("ws://localhost:3001/ws/admin?clientId=admin");
-    }
+    socket.value = new WebSocket("ws://localhost:3001/ws/admin?clientId=admin");
+
     socket.value.onopen = () => {
       console.log("WebSocket connection opened. Ready state: ", socket.value.readyState);
       adminSocketReadyState.value = 1;
@@ -26,6 +25,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
     };
     socket.value.onerror = (error) => {
       console.error(`WebSocket error: ${error}`);
+      adminSocketReadyState.value = 3;
     };
   }
 
