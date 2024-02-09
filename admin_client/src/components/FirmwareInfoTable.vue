@@ -11,9 +11,9 @@
 <script setup>
 import { ref, onMounted, watchEffect } from 'vue';
 import { api } from '../boot/axios.js';
-import { useWebSocketStore } from '../stores/webSocketStore.js';
+import { useGlobalStore } from '../stores/globalStore.js';
 
-const store = useWebSocketStore();
+const store = useGlobalStore();
 const firmwareInfo = ref([]);
 const columns = ref([
   { name: 'HwVersion', required: true, label: 'Hardware Version', align: 'left', field: 'hwVersion', sortable: true },

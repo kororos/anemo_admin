@@ -7,14 +7,6 @@ export const useWebSocketStore = defineStore("webSocket", () => {
   const reconnectInterval = 5000;
   const adminSocketReadyState = ref(0);
 
-  const formSubmitted = ref(false);
-  function firmwareUploaded(){
-    formSubmitted.value = true;
-  }
-
-  function resetFormSubmission(){
-    formSubmitted.value = false;
-  }
 
   function initializeWebSocket() {
     socket.value = new WebSocket("ws://localhost:3001/ws/admin?clientId=admin");
@@ -59,9 +51,6 @@ export const useWebSocketStore = defineStore("webSocket", () => {
     initializeWebSocket,
     clients,
     socket,
-    adminSocketReadyState,
-    firmwareUploaded,
-    formSubmitted,
-    resetFormSubmission
+    adminSocketReadyState
   };
 });

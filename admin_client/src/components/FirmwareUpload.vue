@@ -23,9 +23,9 @@
 <script setup>
 import { ref } from 'vue';
 import { api } from '../boot/axios.js';
-import {useWebSocketStore} from 'src/stores/webSocketStore';
+import {useGlobalStore} from '../stores/globalStore.js';
 
-const store = useWebSocketStore();
+const store = useGlobalStore();
 const hwVersion = ref('');
 const swVersion = ref('');
 const path = ref(null);
