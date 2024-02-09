@@ -51,7 +51,7 @@ const columns = [
     align: 'left',
     field: 'swVersion'
   },
-  { name: 'action', required: true, label: 'Update', align: 'left' }
+  { name: 'action', required: true,  align: 'left' }
 ]
 
 const rows = computed(() => store.clients);
