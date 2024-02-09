@@ -4,6 +4,7 @@ import { ref } from "vue";
 export const useWebSocketStore = defineStore("webSocket", () => {
   const clients = ref(new Array());
   const socket = ref(null);
+  const reconnectInterval = 5000;
   function initializeWebSocket() {
     if(!socket.value){
       socket.value = new WebSocket("ws://localhost:3001/ws/admin?clientId=admin");
@@ -18,6 +19,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
     };
     socket.value.onclose = () => {
       console.log("WebSocket connection closed");
+      setTimeout(initializeWebSocket, reconnectInterval);
     };
     socket.value.onerror = (error) => {
       console.error(`WebSocket error: ${error}`);
