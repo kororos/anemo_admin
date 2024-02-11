@@ -9,7 +9,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
 
 
   function initializeWebSocket() {
-    socket.value = new WebSocket("ws://localhost:3001/ws/admin?clientId=admin");
+    socket.value = new WebSocket("ws://localhost:3000/ws/admin?clientId=admin");
 
     socket.value.onopen = () => {
       console.log("WebSocket connection opened. Ready state: ", socket.value.readyState);

@@ -36,12 +36,12 @@ async function askCont() {
 
 async function connectWs() {
   if (wsClient == undefined) {
-    wsClient = new WebSocket(`ws://localhost:3001/ws/admin?clientId=admin`);
+    wsClient = new WebSocket(`ws://localhost:3000/ws/admin?clientId=admin`);
   } else {
     if (wsClient.readyState === WebSocket.OPEN)
       console.log("Connection already open");
     else
-      wsClient = new WebSocket(`ws://localhost:3001/ws/admin?clientId=admin`);
+      wsClient = new WebSocket(`ws://localhost:3000/ws/admin?clientId=admin`);
   }
   wsClient.on("open", () => console.log("Connected"));
   wsClient.on("close", () => console.log("Disconnected"));
@@ -58,7 +58,7 @@ function sendCommand(command) {
 }
 
 function restartClient(uuid){
-    const url = 'http://localhost:3010/api/restart';
+    const url = 'http://localhost:3000/api/restart';
     const data = { 
         uuid: uuid 
     };
@@ -81,7 +81,7 @@ function getLatestVersion(uuid) {
 }
 
 function _getClientsMap(uuid){
-  const url = 'http://localhost:3010/api/getClients';
+  const url = 'http://localhost:3000/api/getClients';
   const data = { 
       uuid: uuid 
   };
@@ -96,7 +96,7 @@ function _getClientsMap(uuid){
 }
 
 function _getFirmwareInfo(){
-  const url = 'http://localhost:3010/api/getFirmwareInfo';
+  const url = 'http://localhost:3000/api/getFirmwareInfo';
   axios.get(url)
       .then(response => {
           console.log(response.data);

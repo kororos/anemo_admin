@@ -1,14 +1,15 @@
-import { WebSocketServer } from "ws";
+import {WebSocketServer}  from "ws";
 import { sendCommand, getClientsArray } from "./anemoWebSocket.js";
 import url from "url";
 import { v4 as uuidv4 } from "uuid";
 
 const clients = new Map();
 
-function startAdminWebSocketServer() {
+function startAdminWebSocketServer(server) {
   let count = 0;
-  const wss = new WebSocketServer({ port: 3001, path: "/ws/admin" });
-  console.log("WebSocket server for admin is running on port 3001");
+  //const wss = new WebSocket.Server({ port: 3001, path: "/ws/admin" });
+  const wss = new WebSocketServer({ noServer: true, path: "/ws/admin"});
+  console.log("WebSocket server for admin is running on port 3000");
   wss.on("connection", (ws, req) => {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
       .searchParams;
@@ -40,6 +41,7 @@ function startAdminWebSocketServer() {
       clientsArray: getClientsArray()
     });
   });
+  return wss;
 }
 
 function sendAdminCommand(uuid, command) {
