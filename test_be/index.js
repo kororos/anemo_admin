@@ -14,7 +14,9 @@ const app = express();
 
 // Use express.json() middleware to parse JSON requests
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:9000', 'http://kororos.eu']
+}));
 app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes);
 
 
