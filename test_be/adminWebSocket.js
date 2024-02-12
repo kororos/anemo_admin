@@ -34,7 +34,7 @@ function startAdminWebSocketServer(server) {
     ws.on("close", () => {
       // Handle client disconnection here
       clients.delete(uuid);
-      console.log(`Client with uuid: ${uuid} disconnected`);
+      console.log(`[${new Date().toISOString()}]: Client with uuid: ${uuid} disconnected`);
     });
 
     // Send a welcome message to the client
