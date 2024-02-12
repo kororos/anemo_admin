@@ -33,7 +33,7 @@ const wssAnemo = startAnemoWebSocketServer(server);
 const wssAdmin = startAdminWebSocketServer(server);
 
 server.on('upgrade', (request, socket, head) => {
-    const pathname = new URL(request.url, `ws://${request.headers.host}`).pathname;
+    const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
     if (pathname === '/ws/anemometer') {
         wssAnemo.handleUpgrade(request, socket, head, (ws) => {
             wssAnemo.emit('connection', ws, request);
