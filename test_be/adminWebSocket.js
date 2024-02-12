@@ -20,9 +20,12 @@ function startAdminWebSocketServer(server) {
       `Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
     );
     ws.on("message", (message) => {
-      const command = JSON.parse(message);
-      sendCommand(command);
-      // Handle the received message here
+      if(message !== 'ping'){
+        const command = JSON.parse(message);
+        sendCommand(command);
+      }else{
+        ws.send('pong');
+      }
     });
 
     ws.on("close", () => {

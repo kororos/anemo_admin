@@ -7,14 +7,27 @@ export const useWebSocketStore = defineStore("webSocket", () => {
   const reconnectInterval = 5000;
   const adminSocketReadyState = ref(0);
 
-
   function initializeWebSocket() {
     //socket.value = new WebSocket("ws://localhost:3000/ws/admin?clientId=admin");
-    socket.value = new WebSocket("ws://wsanemo.kororos.eu/ws/admin?clientId=admin");
+    socket.value = new WebSocket(
+      "ws://wsanemo.kororos.eu/ws/admin?clientId=admin"
+    );
+
+    let keepAliveIntervalId = null;
 
     socket.value.onopen = () => {
-      console.log("WebSocket connection opened. Ready state: ", socket.value.readyState);
+      console.log(
+        "WebSocket connection opened. Ready state: ",
+        socket.value.readyState
+      );
       adminSocketReadyState.value = 1;
+
+      // Start sending ping messages every 30 seconds
+      keepAliveIntervalId = setInterval(() => {
+        if (socket.value.readyState === WebSocket.OPEN) {
+          socket.value.send(JSON.stringify({ type: "ping" }));
+        }
+      }, 30000);
     };
     socket.value.onmessage = (event) => {
       // Handle the received message here
@@ -25,6 +38,8 @@ export const useWebSocketStore = defineStore("webSocket", () => {
       console.log("WebSocket connection closed");
       setTimeout(initializeWebSocket, reconnectInterval);
       adminSocketReadyState.value = 3;
+
+      clearInterval(keepAliveIntervalId);
     };
     socket.value.onerror = (error) => {
       console.error(`WebSocket error: ${error}`);
@@ -35,23 +50,24 @@ export const useWebSocketStore = defineStore("webSocket", () => {
   function handleMessage(message) {
     try {
       message = JSON.parse(message);
-    } catch (e){
+    } catch (e) {
       console.error("Message is not JSON: ", message);
       return;
     }
 
     console.log(`Received message: ${message}`);
-    if(message.command === "updateClients"){
+    if (message.command === "updateClients") {
       clients.value = message.clients;
-    } else if(message.command === "getClientsMap"){
+    } else if (message.command === "getClientsMap") {
       clients.value = message.clientsArray;
     }
   }
+
 
   return {
     initializeWebSocket,
     clients,
     socket,
-    adminSocketReadyState
+    adminSocketReadyState,
   };
 });
