@@ -24,7 +24,9 @@ function startAdminWebSocketServer(server) {
         const command = JSON.parse(message);
         sendCommand(command);
       }else{
+        console.log('Received ping');
         ws.send('pong');
+        console.log('Sent pong');
       }
     });
 
