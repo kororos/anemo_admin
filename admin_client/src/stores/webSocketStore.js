@@ -9,8 +9,10 @@ export const useWebSocketStore = defineStore("webSocket", () => {
 
   function initializeWebSocket() {
     //socket.value = new WebSocket("ws://localhost:3000/ws/admin?clientId=admin");
+    const url = process.env.WS_BASE_URL || "ws://localhost:3000/ws/admin";
+    const suffix = "?clientId=admin";
     socket.value = new WebSocket(
-      "ws://wsanemo.kororos.eu/ws/admin?clientId=admin"
+      `${url+suffix}`
     );
 
     let keepAliveIntervalId = null;

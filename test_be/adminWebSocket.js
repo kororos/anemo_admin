@@ -21,8 +21,9 @@ function startAdminWebSocketServer(server) {
     );
     ws.on("message", (message) => {
       console.log(`[${new Date().toISOString()}]: Received message: ${message.toString()} and uuid: ${uuid}`);
-      if(message.type !== 'ping'){
-        const command = JSON.parse(message);
+      const command = JSON.parse(message);
+      if(command.type !== 'ping'){
+        command = JSON.parse(message);
         sendCommand(command);
       }else{
         console.log(`[${new Date().toISOString()}]: Received ping`);
