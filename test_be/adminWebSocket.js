@@ -9,7 +9,7 @@ function startAdminWebSocketServer(server) {
   let count = 0;
   //const wss = new WebSocket.Server({ port: 3001, path: "/ws/admin" });
   const wss = new WebSocketServer({ noServer: true, path: "/ws/admin"});
-  console.log("WebSocket server for admin is running on port 3000");
+  console.log(`[${new Date().toISOString()}]: WebSocket server for admin is running on port 3000`);
   wss.on("connection", (ws, req) => {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
       .searchParams;
@@ -17,17 +17,17 @@ function startAdminWebSocketServer(server) {
     const uuid = uuidv4();
     clients.set(uuid, { clientId: clientId, ws: ws });
     console.log(
-      `Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
+      `[${new Date().toISOString()}]: Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
     );
     ws.on("message", (message) => {
-      console.log(`Received message: ${message.toString()} and uuid: ${uuid}`);
+      console.log(`[${new Date().toISOString()}]: Received message: ${message.toString()} and uuid: ${uuid}`);
       if(message !== 'ping'){
         const command = JSON.parse(message);
         sendCommand(command);
       }else{
-        console.log('Received ping');
+        console.log(`[${new Date().toISOString()}]: Received ping`);
         ws.send('pong');
-        console.log('Sent pong');
+        console.log(`[${new Date().toISOString()}]: Sent pong`);
       }
     });
 
