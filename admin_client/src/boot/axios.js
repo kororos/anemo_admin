@@ -10,6 +10,7 @@ import axios from 'axios'
 // for each client)
 //const api = axios.create({ baseURL: 'http://localhost:3000' })
 //const api = axios.create({ baseURL: 'http://wsanemo.kororos.eu' })
+console.log(`API_BASE_URL: ${process.env.API_BASE_URL}`);
 const api = axios.create({ baseURL: process.env.API_BASE_URL || "http://localhost:3000"});
 
 export default boot(({ app }) => {
