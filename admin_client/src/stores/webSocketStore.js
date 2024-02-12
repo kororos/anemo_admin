@@ -27,7 +27,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
         if (socket.value.readyState === WebSocket.OPEN) {
           socket.value.send(JSON.stringify({ type: "ping" }));
         }
-      }, 30000);
+      }, 10000);
     };
     socket.value.onmessage = (event) => {
       // Handle the received message here
