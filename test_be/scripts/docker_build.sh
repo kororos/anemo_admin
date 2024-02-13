@@ -6,7 +6,7 @@ TAG="latest"
 DOCKERFILE_PATH="../."
 DOCKER_REGISTRY="registry.kororos.eu/anemometer"
 STACK_NAME="anemometer"
-COMPOSE_FILE="~/compose/anemometer/docker-compose-anemometer.yml"
+COMPOSE_FILE="/home/$SUDO_USER/compose/anemometer/docker-compose-anemometer.yml"
 
 # Build the Docker image
 docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:$TAG $DOCKERFILE_PATH
