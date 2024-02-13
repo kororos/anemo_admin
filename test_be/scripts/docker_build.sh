@@ -18,4 +18,4 @@ docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:$TAG $DOCKERFILE_PATH
 docker push $DOCKER_REGISTRY/$IMAGE_NAME:$TAG
 
 # Update the stack
-docker stack deploy -c $COMPOSE_FILE $STACK_NAME
+docker stack deploy -c $COMPOSE_FILE --with-registry-auth $STACK_NAME
