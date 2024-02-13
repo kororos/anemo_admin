@@ -14,7 +14,7 @@ router.get("/api/getFirmwareInfo", (req, res) => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
-  const files = getFiles("upLoads");
+  const files = getFiles("uploads");
 
   const firmwareInfo = {};
 
