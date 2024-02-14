@@ -1,6 +1,9 @@
 import  express from 'express';
 import multer from 'multer';
 import fs from 'fs';
+import path from 'path';
+
+const ROOT =process.cwd() + path.sep + 'uploads' + path.sep;
 
 const routes = express.Router();
 const storage = multer.diskStorage({
@@ -8,8 +11,13 @@ const storage = multer.diskStorage({
         const hwVersion = req.body.hwVersion;
         const swVersion = req.body.swVersion;
 
-        const dir = `uploads/${hwVersion}/${swVersion}`;
+        const dir = `${ROOT}${path.sep}${hwVersion}${path.sep}${swVersion}`;
+        if(!validatePath(dir)) {
+            cb(new Error('Forbidden'), null);
+            return;   
+        }
         if (!fs.existsSync(dir)){
+            console.log("creating dir: ", dir);
             fs.mkdirSync(dir, { recursive: true });
         }
         cb(null, dir);
@@ -36,7 +44,20 @@ routes.post('/api/firmwareUpload', upload.single('file'), (req, res, next) => {
     
     // # send response
     res.send('Firmware uploaded and updated successfully');
+}, (error, req, res, next) => {
+    res.status(403).send(error.message);
 });
+
+function validatePath(dir) {
+    console.log("dir: ", dir);
+    const resolvedPath = path.resolve(ROOT, dir);
+    console.log("resolvedPath: ", resolvedPath);
+    //const filepath = fs.realpathSync(resolvedPath);
+    //console.log("filepath: ", filepath);
+    //const filepath = fs.realpathSync(path.resolve(ROOT, dir));
+    console.log("resolvedPath.startsWith: ", resolvedPath.startsWith(ROOT));
+    return resolvedPath.startsWith(ROOT);
+}
 
 // Create a post route at /api/deleteFirmware
 routes.post('/api/deleteFirmware', (req, res) => {
@@ -44,9 +65,13 @@ routes.post('/api/deleteFirmware', (req, res) => {
     const version = req.body.version;
     console.log("version: ", version);
     //delete the contents of the folder named version
-    const dir = `uploads/${version}`;
-    if (fs.existsSync(dir)){
-        fs.rmSync(dir, { recursive: true });
+    const filepath = path.resolve(ROOT, version);
+    if (!validatePath(filepath)) {
+        res.status(403).send('Forbidden');
+        return;
+    }
+    if (fs.existsSync(filepath)){
+        fs.rmSync(filepath, { recursive: true });
     }
 
     // # send response
