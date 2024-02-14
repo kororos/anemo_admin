@@ -2,6 +2,12 @@ import { confirm, select, input } from "@inquirer/prompts";
 import WebSocket from "ws";
 
 let wsClient;
+let data = {
+  clientId: "",
+  hwVersion: "",
+  swVersion: "",
+};
+
 const questions = {
   message: "Issue another command?",
   default: true,
@@ -39,22 +45,22 @@ async function askCont() {
   }
 }
 
-async function connectWs(data) {
+async function connectWs() {
   if (wsClient == undefined) {
-    wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
+    wsClient = new WebSocket(`${process.env.WS_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
   } else {
     if (wsClient.readyState === WebSocket.OPEN)
       console.log("Connection already open");
-    else wsClient = new WebSocket(`ws://localhost:3000/ws/anemometer?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
+    else wsClient = new WebSocket(`${process.env.WS_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
   }
   wsClient.on("open", () => console.log("Connected"));
   wsClient.on("close", () => console.log("Disconnected"));
-  wsClient.on("message", async (data) => {
-    console.log("Got the following data: ", data.toString());
-    switch (data.toString()){
+  wsClient.on("message", async (message) => {
+    console.log("Got the following data: ", message.toString());
+    switch (message.toString()){
       case "restart" :
         await wsClient.close();
-        connectWs(clientId);
+        connectWs();
     }
   }
   );
@@ -80,13 +86,13 @@ async function ask() {
       const hwVersion = await input(hwVersionQuestion);
       const swVersion = await input(swVersionQuestion);
 
-      const data = {
+      data = {
         clientId: clientId,
         hwVersion: hwVersion,
         swVersion: swVersion,
       };
       
-      await connectWs(data);
+      await connectWs();
       break;
     case "Disconnect":
       console.log("\nWill now Disconnect from websocket server");
