@@ -15,7 +15,7 @@ RUN npm install
 # Copy the application code
 COPY . .
 
-RUN mkdir -p ./upLoads
+RUN mkdir -p ./uploads
 
 # Expose the application port
 EXPOSE 3000
