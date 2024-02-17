@@ -9,14 +9,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watchEffect } from 'vue';
 import { api } from '../boot/axios.js';
+import { useGlobalStore } from '../stores/globalStore.js';
 
+const store = useGlobalStore();
 const firmwareInfo = ref([]);
 const columns = ref([
   { name: 'HwVersion', required: true, label: 'Hardware Version', align: 'left', field: 'hwVersion', sortable: true },
   { name: 'SwVersion', required: true, label: 'Firmware Version', align: 'left', field: 'swVersion', sortable: true },
-  { name: 'action', required: true,  align: 'left' }
+  { name: 'action', required: true, align: 'left' }
 ]);
 
 async function populateVersions() {
@@ -52,6 +54,13 @@ async function performAction(row) {
     // Refresh the table after the delete operation
     firmwareInfo.value = [];
     populateVersions();
-
 }
+
+watchEffect(() => {
+  if(store.formSubmitted) {
+    firmwareInfo.value = [];
+    populateVersions();
+    store.formSubmitted = false;
+  }
+});
 </script>

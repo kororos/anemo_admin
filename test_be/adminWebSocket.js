@@ -1,14 +1,15 @@
-import { WebSocketServer } from "ws";
+import {WebSocketServer}  from "ws";
 import { sendCommand, getClientsArray } from "./anemoWebSocket.js";
 import url from "url";
 import { v4 as uuidv4 } from "uuid";
 
 const clients = new Map();
 
-function startAdminWebSocketServer() {
+function startAdminWebSocketServer(server) {
   let count = 0;
-  const wss = new WebSocketServer({ port: 3001, path: "/ws/admin" });
-  console.log("WebSocket server for admin is running on port 3001");
+  //const wss = new WebSocket.Server({ port: 3001, path: "/ws/admin" });
+  const wss = new WebSocketServer({ noServer: true, path: "/ws/admin"});
+  console.log(`[${new Date().toISOString()}]: WebSocket server for admin is running on port 3000`);
   wss.on("connection", (ws, req) => {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
       .searchParams;
@@ -16,18 +17,25 @@ function startAdminWebSocketServer() {
     const uuid = uuidv4();
     clients.set(uuid, { clientId: clientId, ws: ws });
     console.log(
-      `Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
+      `[${new Date().toISOString()}]: Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
     );
     ws.on("message", (message) => {
+      console.log(`[${new Date().toISOString()}]: Received message: ${message.toString()} and uuid: ${uuid}`);
       const command = JSON.parse(message);
-      sendCommand(command);
-      // Handle the received message here
+      if(command.type !== 'ping'){
+        command = JSON.parse(message);
+        sendCommand(command);
+      }else{
+        console.log(`[${new Date().toISOString()}]: Received ping`);
+        ws.send('pong');
+        console.log(`[${new Date().toISOString()}]: Sent pong`);
+      }
     });
 
     ws.on("close", () => {
       // Handle client disconnection here
       clients.delete(uuid);
-      console.log(`Client with uuid: ${uuid} disconnected`);
+      console.log(`[${new Date().toISOString()}]: Client with uuid: ${uuid} disconnected`);
     });
 
     // Send a welcome message to the client
@@ -40,6 +48,7 @@ function startAdminWebSocketServer() {
       clientsArray: getClientsArray()
     });
   });
+  return wss;
 }
 
 function sendAdminCommand(uuid, command) {

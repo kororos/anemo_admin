@@ -14,7 +14,7 @@ router.get("/api/getFirmwareInfo", (req, res) => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
-  const files = getFiles("upLoads");
+  const files = getFiles("uploads");
 
   const firmwareInfo = {};
 
@@ -22,7 +22,7 @@ router.get("/api/getFirmwareInfo", (req, res) => {
   files.forEach((file) => {
     console.log(file);
     // Get the hwVersion and swVersion from the file name
-    const [, hwVersion, swVersion] = file.split("\\");
+    const [, hwVersion, swVersion] = file.split(path.sep);;
 
     // Check if the hwVersion already exists in the firmwareInfo object
     if (!firmwareInfo[hwVersion]) {
