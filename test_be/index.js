@@ -17,6 +17,8 @@ app.use(express.json());
 app.use(cors({
     origin: ['http://localhost:9000', 'http://kororos.eu']
 }));
+
+app.options('*', cors());
 app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes);
 
 
