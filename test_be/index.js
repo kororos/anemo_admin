@@ -17,7 +17,7 @@ const app = express();
 // Use express.json() middleware to parse JSON requests
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:9000', 'http://kororos.eu'],
+    origin: ['http://localhost:9000', 'http://kororos.eu', 'http://wsanemo.kororos.eu'],
     credentials: true,
     exposedHeaders: ['Authorization']
 }));

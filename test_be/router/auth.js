@@ -20,7 +20,8 @@ router.post('/login', (req, res) => {
     const accessToken = jwt.sign({ username},secretKey, {expiresIn: accessTokenLife} );
 
     // Set the token as an HTTP-only cookie
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false});
+    //TODO For testing purposes, the domain is set to localhost. In a production environment, the domain should be set to the actual domain of the application.
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, domain: 'localhost'});
     res.header('Authorization', `Bearer ${accessToken}`);
 
     // Send a success response
