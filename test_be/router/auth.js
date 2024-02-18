@@ -21,7 +21,7 @@ router.post('/login', (req, res) => {
 
     // Set the token as an HTTP-only cookie
     //TODO For testing purposes, the domain is set to localhost. In a production environment, the domain should be set to the actual domain of the application.
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, domain: 'localhost'});
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, domain: 'localhost:9000'});
     res.header('Authorization', `Bearer ${accessToken}`);
 
     // Send a success response
