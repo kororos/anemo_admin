@@ -48,9 +48,6 @@ async function submitForm() {
     },
     onUploadProgress: (progressEvent) => {
       uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-      console.log(`progressEvent.loaded = ${progressEvent.loaded}`);
-      console.log(`progressEvent.total = ${progressEvent.total}`);
-      console.log(`uploadProgress.value = ${uploadProgress.value}`);
       emit('progressUpload', uploadProgress.value);
 
     }
