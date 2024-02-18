@@ -19,6 +19,8 @@
         </div>
         <div>Quasar v{{ $q.version }}</div>
         <div> <q-toggle v-model="darkMode" color="yellow"  label="Dark Mode" /> </div>
+        <div><q-btn flat round dense icon="logout" aria-label="Logout" @click="authStore.logout()" />
+        </div>
       </q-toolbar>
 
     </q-header>
@@ -56,6 +58,7 @@ import { useQuasar } from 'quasar'
 import EssentialLink from 'components/EssentialLink.vue';
 import { useWebSocketStore } from '../stores/webSocketStore.js';
 import WebSocketStateIcon from 'src/components/WebSocketStateIcon.vue';
+import { useAuthStore } from '@/stores/authStore';
 
 const linksList = [
   {
@@ -105,7 +108,7 @@ const leftDrawerOpen = ref(false)
 const essentialLinks = ref(linksList);
 const darkMode = ref(false);
 const $q = useQuasar();
-
+const authStore = useAuthStore();
 watch(darkMode, (value) => {
   $q.dark.set(value);
 })

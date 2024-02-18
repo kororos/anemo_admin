@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import routes from './router/router.js';
 import firmwareUploadRoutes from './router/firmwareUploadRouter.js';
 import firmwareInfoRoutes from './router/firmwareInfo.js';
+import authRoutes from './router/auth.js';
 import { startAnemoWebSocketServer, sendCommand as sendAnemoCommand } from "./anemoWebSocket.js";
 import { startAdminWebSocketServer } from "./adminWebSocket.js";
 import {createServer} from 'http';
@@ -15,10 +17,13 @@ const app = express();
 // Use express.json() middleware to parse JSON requests
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:9000', 'http://kororos.eu']
+    origin: ['http://localhost:9000', 'http://kororos.eu'],
+    credentials: true,
+    exposedHeaders: ['Authorization']
 }));
+app.use(cookieParser());
 
-app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes);
+app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes, authRoutes);
 
 
 
