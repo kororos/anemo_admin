@@ -20,7 +20,7 @@ router.post('/login', (req, res) => {
     const accessToken = jwt.sign({ username},secretKey, {expiresIn: accessTokenLife} );
 
     // Set the token as an HTTP-only cookie
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'none' , secure: false});
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false});
     res.header('Authorization', `Bearer ${accessToken}`);
 
     // Send a success response
