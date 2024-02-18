@@ -1,20 +1,41 @@
 <template>
   <div class="flex row justify-center">
-  <q-page class="column justify-center " >
-    <summary-anemo-table class="q-ma-md"> </summary-anemo-table>
-    <div  class="row  justify-between q-ma-md">
-      <firmware-info-table class="q-mr-md col-auto"></firmware-info-table>
-      <q-card class="q-ml-md col-auto">
-        <firmware-upload> </firmware-upload>
-      </q-card>
-    </div>
+    <q-page class="column justify-center ">
+      <summary-anemo-table class="q-ma-md"> </summary-anemo-table>
+      <div class="row  justify-between q-ma-md">
+        <firmware-info-table ref = "firmwareInfoTable" class="q-mr-md col-auto"></firmware-info-table>
+        <q-card class="q-ml-md col-auto">
+          <q-card-section>
+            <q-linear-progress :value="progress" :color="progressColor" />
+          </q-card-section>
+          <q-card-section>
+            <firmware-upload @upload-finished="uploadFinished" @progress-upload="updateProgress"> </firmware-upload>
+          </q-card-section>
+        </q-card>
+      </div>
 
-  </q-page>
+    </q-page>
   </div>
 </template>
 
 <script setup >
-import  SummaryAnemoTable  from '../components/SummaryAnemoTable.vue'
-import  FirmwareInfoTable  from '../components/FirmwareInfoTable.vue'
+import { ref } from 'vue';
+import SummaryAnemoTable from '../components/SummaryAnemoTable.vue'
+import FirmwareInfoTable from '../components/FirmwareInfoTable.vue'
 import FirmwareUpload from 'src/components/FirmwareUpload.vue';
+
+const progressColor = "primary"
+const progress = ref(0); 
+const firmwareInfoTable = ref(null);
+
+
+function updateProgress(value) {
+  progress.value = value/100;
+}
+
+function uploadFinished() {
+  progress.value = 0;
+  firmwareInfoTable.value.populateVersions();
+}
+
 </script>

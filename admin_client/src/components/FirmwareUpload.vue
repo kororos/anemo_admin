@@ -23,13 +23,12 @@
 <script setup>
 import { ref } from 'vue';
 import { api } from '../boot/axios.js';
-import {useGlobalStore} from '../stores/globalStore.js';
 
-const store = useGlobalStore();
 const hwVersion = ref('');
 const swVersion = ref('');
 const path = ref(null);
 const uploadProgress = ref(0);
+const emit = defineEmits(['progressUpload', 'uploadFinished']);
 
 
 function enabled() {
@@ -42,23 +41,33 @@ async function submitForm() {
   formData.append('swVersion', swVersion.value);
   formData.append('file', path.value);
 
-  try {
-    const response = await api.post('/api/firmwareUpload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      onUploadProgress: (progressEvent) => {
-        uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-      }
-    });
+
+  const response = await api.post('/api/firmwareUpload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    onUploadProgress: (progressEvent) => {
+      uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+      console.log(`progressEvent.loaded = ${progressEvent.loaded}`);
+      console.log(`progressEvent.total = ${progressEvent.total}`);
+      console.log(`uploadProgress.value = ${uploadProgress.value}`);
+      emit('progressUpload', uploadProgress.value);
+
+    }
+  }).then((response) => {
     console.log(response);
-    store.firmwareUploaded();
+    emit('uploadFinished');
+    uploadProgress.value = 0;
+    emit('progressUpload', uploadProgress.value);
     hwVersion.value = '';
     swVersion.value = '';
     path.value = null;
-  } catch (error) {
+    
+  }).catch((error) => {
     console.error(error);
-  }
+  })
+
+
 
 }
 </script>
