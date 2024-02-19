@@ -59,7 +59,7 @@ async function submitForm() {
     hwVersion.value = '';
     swVersion.value = '';
     path.value = null;
-    
+
   }).catch((error) => {
     console.error(error);
   })
@@ -68,3 +68,7 @@ async function submitForm() {
 
 }
 </script>
+
+<style>
+
+</style>

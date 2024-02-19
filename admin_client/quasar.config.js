@@ -32,6 +32,7 @@ const path = require('path');
     boot: [
 
       'axios',
+      'authBoot'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

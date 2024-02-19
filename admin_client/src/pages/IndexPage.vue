@@ -25,7 +25,7 @@ import FirmwareInfoTable from '../components/FirmwareInfoTable.vue'
 import FirmwareUpload from 'src/components/FirmwareUpload.vue';
 
 const progressColor = "primary"
-const progress = ref(0); 
+const progress = ref(0);
 const firmwareInfoTable = ref(null);
 
 
@@ -39,3 +39,9 @@ function uploadFinished() {
 }
 
 </script>
+<style scoped>
+.body--dark{
+  background-color: aqua;
+  color: white;
+}
+</style>

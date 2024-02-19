@@ -1,5 +1,5 @@
 <template>
-  <q-table :rows="firmwareInfo" :columns="columns" row-key="id">
+  <q-table  :rows="firmwareInfo" :columns="columns" row-key="id">
     <template v-slot:body-cell-action="props">
       <q-td :props="props">
         <q-btn @click="performAction(props.row)" label="Delete" />
@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineExpose } from 'vue';
+import { ref, onMounted } from 'vue';
 import { api } from '../boot/axios.js';
 
 
@@ -60,3 +60,6 @@ defineExpose({
 });
 
 </script>
+<style scoped>
+</style>
+

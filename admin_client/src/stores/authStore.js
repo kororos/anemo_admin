@@ -72,11 +72,13 @@ export const useAuthStore = defineStore("authStore", () => {
         await api.post('/logout', {}, {withCredentials: true});
         clearTimeout(refreshTokenTimeout);
         user.value = null;
+
         router.push('/login');
     }
     return {
         user,
         login,
-        logout
+        logout,
+        refreshToken
     };
 });
