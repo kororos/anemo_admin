@@ -16,7 +16,7 @@ const app = express();
 
 // Use express.json() middleware to parse JSON requests
 app.use((err, req, res, next) => {
-    console.log(res);
+    console.log(req);
     next();
 });
 
