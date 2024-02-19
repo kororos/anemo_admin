@@ -21,4 +21,4 @@ RUN mkdir -p ./uploads
 EXPOSE 3000
 
 # Define the command to run the application
-CMD ["DEBUG=express:*" , "node", "index.js"]
+CMD ["node", "index.js"]
