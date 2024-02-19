@@ -34,17 +34,17 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
-  // Router.beforeEach(async (to, from) => {
-  //   const publicPages = ["/login"];
-  //   const authRequired = !publicPages.includes(to.path);
-  //   const authStore = useAuthStore();
-  //   if (authRequired && !authStore.user) {
-  //     return {
-  //       path: "/login",
-  //       query: { returnUrl: to.fullPath },
-  //     };
-  //   }
-  // });
+  Router.beforeEach(async (to, from) => {
+    const publicPages = ["/login"];
+    const authRequired = !publicPages.includes(to.path);
+    const authStore = useAuthStore();
+    if (authRequired && !authStore.user) {
+      return {
+        path: "/login",
+        query: { returnUrl: to.fullPath },
+      };
+    }
+  });
 
   return Router;
 });

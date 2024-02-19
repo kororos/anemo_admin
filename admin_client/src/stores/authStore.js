@@ -15,7 +15,6 @@ import { useRouter } from 'vue-router';
 export const useAuthStore = defineStore("authStore", () => {
     const user = ref(null);
     let refreshTokenTimeout = 0;
-    const router = useRouter();
     /**
      * Logs in the user with the provided username and password.
      * @param {string} username - The username.
@@ -73,7 +72,7 @@ export const useAuthStore = defineStore("authStore", () => {
         clearTimeout(refreshTokenTimeout);
         user.value = null;
 
-        router.push('/login');
+        this.router.push('/login');
     }
     return {
         user,

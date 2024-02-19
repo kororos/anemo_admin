@@ -15,16 +15,9 @@ import {createServer} from 'http';
 const app = express();
 
 // Use express.json() middleware to parse JSON requests
-app.use((err, req, res, next) => {
-    console.log(req);
-    next();
-});
-
 app.use(express.json());
-app.options('*', cors());
 app.use(cors({
     origin: ['http://localhost:9000', 'http://kororos.eu', 'http://anemo.kororos.eu:9000'],
-    //origin: '*',
     credentials: true,
     exposedHeaders: ['Authorization'],
 
