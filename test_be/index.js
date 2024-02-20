@@ -16,13 +16,14 @@ const app = express();
 
 // Use express.json() middleware to parse JSON requests
 app.use(express.json());
-app.options('*', cors());
 app.use(cors({
     origin: ['http://localhost:9000', 'http://kororos.eu', 'http://anemo.kororos.eu:9000'],
     credentials: true,
     exposedHeaders: ['Authorization'],
 
 }));
+app.options('*', cors());
+
 app.use(cookieParser());
 
 app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes, authRoutes);
