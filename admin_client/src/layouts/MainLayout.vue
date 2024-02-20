@@ -22,7 +22,6 @@
         <div><q-btn flat round dense icon="logout" aria-label="Logout" @click="authStore.logout()" />
         </div>
       </q-toolbar>
-
     </q-header>
 
     <q-drawer
@@ -45,7 +44,7 @@
       </q-list>
     </q-drawer>
 
-    <q-page-container >
+    <q-page-container>
       <router-view />
     </q-page-container>
   </q-layout>
@@ -125,7 +124,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-q-toolbar.body--dark {
-  background: #684949
-}
+
 </style>
