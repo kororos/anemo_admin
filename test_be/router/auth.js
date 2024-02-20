@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 const secretKey = "my-secret-key";
-const accessTokenLife = '2m';
+const accessTokenLife = '10m';
 // Login route
 router.post('/login', (req, res) => {
     // Get the username and password from the request body
@@ -21,7 +21,7 @@ router.post('/login', (req, res) => {
 
     // Set the token as an HTTP-only cookie
     //TODO For testing purposes, the domain is set to localhost. In a production environment, the domain should be set to the actual domain of the application.
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: true, maxAge: 24 * 60 * 60 * 1000});
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     res.header('Authorization', `Bearer ${accessToken}`);
 
     // Send a success response
