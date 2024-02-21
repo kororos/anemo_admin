@@ -1,9 +1,9 @@
 <template>
   <div class="q-pa-md">
     <q-form @submit.prevent="submitForm" class="q-gutter-md">
-      <q-input v-model="hwVersion" label="Hardware Version" outlined dense></q-input>
-      <q-input v-model="swVersion" label="Software Version" outlined dense></q-input>
-      <q-file dense outlined bottom-slots v-model="path" label="Firmware File" counter>
+      <q-input v-model="hwVersion" id="hwVersion" label="Hardware Version" outlined dense></q-input>
+      <q-input v-model="swVersion" id="swVersion" label="Software Version" outlined dense></q-input>
+      <q-file dense outlined bottom-slots v-model="path" id="firmwareFile" label="Firmware File" counter>
         <template v-slot:prepend>
           <q-icon name="cloud_upload" @click.stop.prevent />
         </template>
