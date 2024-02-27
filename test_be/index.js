@@ -5,6 +5,8 @@ import routes from './router/router.js';
 import firmwareUploadRoutes from './router/firmwareUploadRouter.js';
 import firmwareInfoRoutes from './router/firmwareInfo.js';
 import authRoutes from './router/auth.js';
+import unprotected from './router/unprotected.js';
+import isLoggedIn from './middleware/auth.js';
 import { startAnemoWebSocketServer, sendCommand as sendAnemoCommand } from "./anemoWebSocket.js";
 import { startAdminWebSocketServer } from "./adminWebSocket.js";
 import {createServer} from 'http';
@@ -26,6 +28,8 @@ app.options('*', cors());
 
 app.use(cookieParser());
 
+app.use(unprotected);
+//app.use(isLoggedIn);
 app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes, authRoutes);
 
 

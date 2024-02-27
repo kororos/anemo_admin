@@ -2,11 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import Sequelize from 'sequelize';
 import process from 'process';
-import configJson from '../config/config.json';
+import { fileURLToPath } from 'url';  
+import configJS from '../config/config.js';
 
 const basename = path.basename(import.meta.url);
 const env = process.env.NODE_ENV || 'development';
-const config = configJson[env];
+const config = configJS[env];
 const db = {};
 
 let sequelize;
@@ -16,7 +17,8 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-const files = fs.readdirSync(path.dirname(import.meta.url));
+console.log('fileURLToPath(import.meta.url):', fileURLToPath(import.meta.url));
+const files = fs.readdirSync(fileURLToPath(path.dirname(import.meta.url)));
 files
   .filter(file => (
     file.indexOf('.') !== 0 &&
