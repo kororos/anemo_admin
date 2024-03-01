@@ -4,7 +4,7 @@ import db from '../db/models/index.js';
 import isLoggedIn from '../middleware/auth.js';
 
 const router = express.Router();
-const accessTokenLife = '10m';
+const accessTokenLife = '2m';
 const secretKey = process.env.SECRET_KEY;
 
 

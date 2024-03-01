@@ -11,7 +11,10 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\test_be\\index.js"
+            "program": "${workspaceFolder}\\test_be\\index.js",
+            "env": {
+                "SECRET_KEY": "my_secret_key"
+            }
         }
     ]
 }

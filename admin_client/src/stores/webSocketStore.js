@@ -53,7 +53,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
     try {
       message = JSON.parse(message);
     } catch (e) {
-      console.error("Message is not JSON: ", message);
+      console.log("Message is not JSON: ", message);
       return;
     }
 

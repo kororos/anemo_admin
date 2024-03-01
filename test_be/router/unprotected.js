@@ -1,7 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 
-const accessTokenLife = '10m';
+const accessTokenLife = '2m';
 const router = express.Router();
 
 //TODO this needs to be moved to a .env file

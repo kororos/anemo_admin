@@ -19,7 +19,7 @@ function isLoggedIn(req, res, next) {
     //next();
   } else {
     // User is not logged in, send an error response
-    res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: 'Unauthorized by middleware' });
   }
 }
 
