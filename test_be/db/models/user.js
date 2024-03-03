@@ -14,10 +14,14 @@ export default (sequelize, DataTypes) => {
   }
   User.init({
     name: DataTypes.STRING,
-    state: DataTypes.BOOLEAN,
+    status: DataTypes.ENUM('active', 'inactive', 'locked'),
     birth: DataTypes.DATE,
-    card: DataTypes.INTEGER,
-    role: DataTypes.ENUM('Admin', 'Guest')
+    role: DataTypes.ENUM('Admin', 'Guest'),
+    email: {type: DataTypes.STRING, unique: true },
+    family_name: DataTypes.STRING,
+    given_name: DataTypes.STRING,
+    password: DataTypes.STRING,
+    photo_link: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'User',
