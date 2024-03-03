@@ -11,12 +11,10 @@
             </q-form>
         </q-card-section>
         <q-card-section>
-            <q-btn>
-                <div class="row no-wrap" position="fixed">
-                    <q-img src="../assets/web_light_rd_ctn.svg" fit="scale-down"/>
-                    
-                </div>
-            </q-btn>
+            <div>
+                <a :href="getGoogleUrl(from)"  class="text-center" target="_blank">
+                <q-img src="../assets/web_light_rd_ctn.svg" fit="scale-down" /> </a>
+            </div>
         </q-card-section>
     </q-card>
 </template>
@@ -25,6 +23,7 @@
 import { ref } from 'vue';
 import { useAuthStore } from '../stores/authStore.js';
 import { useRoute, useRouter } from 'vue-router';
+import getGoogleUrl from '../utils/getGoogleUrls.js'
 
 
 const router = useRouter();
@@ -32,6 +31,7 @@ const route = useRoute();
 const store = useAuthStore();
 const username = ref('');
 const password = ref('');
+const from='/';
 function login() {
     store.login(username.value, password.value).then(() => {
         router.push(route.query.returnUrl || '/');
@@ -40,7 +40,4 @@ function login() {
     })
 }
 
-function googleLogin() {
-
-}
 </script>

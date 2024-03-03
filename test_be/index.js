@@ -29,7 +29,7 @@ app.options('*', cors());
 app.use(cookieParser());
 
 app.use(unprotected);
-app.use(isLoggedIn);
+//app.use(isLoggedIn);
 app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes, authRoutes);
 
 

@@ -11,7 +11,7 @@
 
 const { configure } = require('quasar/wrappers');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config().parsed;
   module.exports = configure(function (/* ctx */) {
   return {
     eslint: {
@@ -63,7 +63,9 @@ require('dotenv').config();
       env:
       {
         WS_BASE_URL: process.env.WS_BASE_URL,
-        API_BASE_URL: process.env.API_BASE_URL
+        API_BASE_URL: process.env.API_BASE_URL,
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+        GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI
         //require('dotenv').config().parsed,
       },
 

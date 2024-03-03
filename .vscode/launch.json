@@ -11,7 +11,12 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\test_be\\index.js",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}\\test_be",
             "env": {
                 "SECRET_KEY": "my_secret_key"
             }

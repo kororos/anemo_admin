@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { getGoogleOAuthTokens } from '../services/user.service.js';
 
 const accessTokenLife = '2m';
 const router = express.Router();
@@ -31,4 +32,23 @@ router.post('/login', (req, res) => {
     res.send({ username: username });
 });
 
+
+router.get('/session/oauth/google', async (req, res) => {
+    //Get the code from query string
+    const code = req.query.code;
+    //get the id and the access token with code 
+    const {id_token, access_token} = await getGoogleOAuthTokens(code);
+    console.log('id_token', id_token); 
+    console.log('access_token', access_token);
+    // get user with tokens
+  
+    // upsert the user 
+  
+    // create the session 
+  
+    // create access and refresh token 
+  
+    // redirect back to client
+    res.redirect('http://localhost:9000');
+  });
 export default router;
