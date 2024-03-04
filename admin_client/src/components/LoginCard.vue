@@ -12,7 +12,7 @@
         </q-card-section>
         <q-card-section>
             <div>
-                <a :href="getGoogleUrl(from)"  class="text-center" target="_blank">
+                <a :href="getGoogleUrl(data)"  class="text-center" target="_blank">
                 <q-img src="../assets/web_light_rd_ctn.svg" fit="scale-down" /> </a>
             </div>
         </q-card-section>
@@ -31,9 +31,17 @@ const route = useRoute();
 const store = useAuthStore();
 const username = ref('');
 const password = ref('');
-const from='/';
+const data = ref({
+  baseUrl: location.origin,
+  from: route.query.returnUrl || '/'
+});
+
+function callGoogle() {
+  getGoogleUrl(data.value);
+}
+//const from= ref(location.origin + route.fullPathroute.query.returnUrl ||  '/');
 function login() {
-    store.login(username.value, password.value).then(() => {
+    store.login(username.value, password.value, route.query.returnUrl).then(() => {
         router.push(route.query.returnUrl || '/');
     }).catch(() => {
         console.log('Login failed');

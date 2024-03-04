@@ -1,4 +1,4 @@
-function getGoogleOAuthUrl(from) {
+function getGoogleOAuthUrl(data) {
   const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
   const options = {
     client_id: process.env.GOOGLE_CLIENT_ID,
@@ -7,7 +7,7 @@ function getGoogleOAuthUrl(from) {
     scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'].join(' '),
     access_type: 'offline',
     prompt: 'consent',
-    state: from
+    state: JSON.stringify(data)
   };
 
   const queryString = new URLSearchParams(options).toString();

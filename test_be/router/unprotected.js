@@ -27,11 +27,13 @@ function setAuthCookiesAndHeader(res, username) {
     // Set the access token as an HTTP-only cookie
     res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     res.header('Authorization', `Bearer ${accessToken}`);
+    res.data = { username: username, accessToken: accessToken };
+    return res;
 }
 // Login route
 router.post('/login', (req, res) => {
     // Get the username and password from the request body
-    const { username, password } = req.body;
+    const { username, password, redirectUrl } = req.body;
 
     // TODO: Implement your own validation logic here
     // For example, check if the username and password are correct
@@ -61,6 +63,7 @@ router.get('/session/oauth/google', async (req, res) => {
     console.log('id_token', id_token); 
     console.log('access_token', access_token);
     
+    const redirect = JSON.parse(req.query.state);
     // get user with tokens
     const googleUser = jwt.decode(id_token);
 
@@ -77,8 +80,10 @@ router.get('/session/oauth/google', async (req, res) => {
     // create the session 
   
     // create access and refresh token 
-    setAuthCookiesAndHeader(res, googleUser.email);    
+    res = setAuthCookiesAndHeader(res, googleUser.email);
+    res.data = {...res.data, redirectUrl: redirect.from};   
     // redirect back to client
-    res.redirect('http://localhost:9000');
+    res.redirect('http://localhost:9000/#/login_successful');
+    //res.redirect('#' + redirect.baseUrl  + redirect.from);
   });
 export default router;

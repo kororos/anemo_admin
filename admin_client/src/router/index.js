@@ -6,8 +6,8 @@ import {
   createWebHashHistory,
 } from "vue-router";
 import routes from "./routes";
-
 import { useAuthStore } from "@/stores/authStore";
+
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -24,7 +24,7 @@ export default route(function (/* { store, ssrContext } */) {
     ? createWebHistory
     : createWebHashHistory;
 
-  const Router = createRouter({
+  const router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
 
@@ -34,17 +34,35 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
-  Router.beforeEach(async (to, from) => {
-    const publicPages = ["/login"];
-    const authRequired = !publicPages.includes(to.path);
-    const authStore = useAuthStore();
-    if (authRequired && !authStore.user) {
-      return {
-        path: "/login",
-        query: { returnUrl: to.fullPath },
+  router.beforeEach((to, from) => {
+    if (to.path === "/login_successful") {
+      const authStore = useAuthStore();
+      const accessToken = to.query.accessToken;
+      const fromUrl = to.query.redirectUrl;
+      console.log("accessToken", accessToken);
+      const username = to.query.username;
+      authStore.user = {
+        username: username,
+        access_jwt: accessToken,
       };
+
+      //authStore.user = true;
+      return {
+        path: fromUrl,
+      };
+    } else {
+      const publicPages = ["/login"];
+      const authRequired = !publicPages.includes(to.path);
+      const authStore = useAuthStore();
+      //authStore.user.access_jwt = cookies.get("access_jwt");
+      if (authRequired && !authStore.user) {
+        return {
+          path: "/login",
+          query: { returnUrl: to.fullPath },
+        };
+      }
     }
   });
 
-  return Router;
+  return router;
 });

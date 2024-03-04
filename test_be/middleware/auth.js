@@ -1,9 +1,11 @@
 import jwt from 'jsonwebtoken';
+
 function isLoggedIn(req, res, next) {
   // Check if user is logged in
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
+    const authStore = useAuthStore();
     // Verify the token
     jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
         if (err) {
@@ -22,5 +24,6 @@ function isLoggedIn(req, res, next) {
     res.status(401).json({ error: 'Unauthorized by middleware' });
   }
 }
+
 
 export default  isLoggedIn;

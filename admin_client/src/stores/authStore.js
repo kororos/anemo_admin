@@ -20,8 +20,8 @@ export const useAuthStore = defineStore("authStore", () => {
      * @param {string} username - The username.
      * @param {string} password - The password.
      */
-    async function login(username, password) {
-        const response = await api.post('/login', { username, password }, {withCredentials: true});
+    async function login(username, password, redirectUrl = '/'){
+        const response = await api.post('/login', { username, password, redirectUrl }, {withCredentials: true});
         user.value = response.data;
         //user.value.jwt = response.headers['authorization'];
         console.log(`user: ${user.value}`);
