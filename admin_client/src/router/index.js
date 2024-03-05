@@ -37,18 +37,19 @@ export default route(function (/* { store, ssrContext } */) {
   router.beforeEach((to, from) => {
     if (to.path === "/login_successful") {
       const authStore = useAuthStore();
-      const accessToken = to.query.accessToken;
-      const fromUrl = to.query.redirectUrl;
-      console.log("accessToken", accessToken);
-      const username = to.query.username;
-      authStore.user = {
-        username: username,
-        access_jwt: accessToken,
-      };
+      let data;
+      if (to.query.data) {
+        data = JSON.parse(to.query.data);
+        authStore.user = {
+          username: data.username,
+          access_jwt: data.accessToken,
+        };
+        return { path: data.redirectUrl };
+      }
 
       //authStore.user = true;
       return {
-        path: fromUrl,
+        path: "/",
       };
     } else {
       const publicPages = ["/login"];

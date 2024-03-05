@@ -27,8 +27,8 @@ function setAuthCookiesAndHeader(res, username) {
     // Set the access token as an HTTP-only cookie
     res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     res.header('Authorization', `Bearer ${accessToken}`);
-    res.data = { username: username, accessToken: accessToken };
-    return res;
+    const data = { username: username, accessToken: accessToken };
+    return  data;
 }
 // Login route
 router.post('/login', (req, res) => {
@@ -80,10 +80,10 @@ router.get('/session/oauth/google', async (req, res) => {
     // create the session 
   
     // create access and refresh token 
-    res = setAuthCookiesAndHeader(res, googleUser.email);
-    res.data = {...res.data, redirectUrl: redirect.from};   
+    let data = setAuthCookiesAndHeader(res, googleUser.email);
+    data = encodeURIComponent(JSON.stringify({...data, redirectUrl: redirect.from}));   
     // redirect back to client
-    res.redirect('http://localhost:9000/#/login_successful');
+    res.redirect(`http://localhost:9000/#/login_successful?data=${data}`);
     //res.redirect('#' + redirect.baseUrl  + redirect.from);
   });
 export default router;
