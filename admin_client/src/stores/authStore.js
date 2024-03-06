@@ -42,7 +42,7 @@ export const useAuthStore = defineStore("authStore", () => {
      * Refreshes the access token.
      */
     async function refreshToken() {
-        const response = await api.post('/refresh', {} ,{withCredentials: true , headers: {Authorization: `Bearer ` + user.value.access_jwt}});
+        const response = await api.post('/refresh', {} ,{withCredentials: true /*, headers: {Authorization: `Bearer ` + user.value.access_jwt}*/});
         user.value = response.data;
         console.log(`user: ${user.value}`);
         startAccessTokenRefresh(getTimeToRefresh(response));

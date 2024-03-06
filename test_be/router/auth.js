@@ -20,7 +20,7 @@ router.post('/refresh', (req, res) => {
   
       res
         .header('Authorization', `Bearer ${accessToken}`)
-        .send(decoded.username);
+        .send({username: decoded.username});
     } catch (error) {
       return res.status(400).send('Invalid refresh token.');
     }
