@@ -1,0 +1,18 @@
+# Use the official PostgreSQL image as the base image
+FROM postgres:latest
+
+LABEL maintainer="lkororos@gmail.com" author="Lefteris Kororos"
+
+# Set the working directory inside the container
+WORKDIR /docker-entrypoint-initdb.d
+
+# Copy the database initialization scripts from the local "db_scripts" folder to the container
+COPY db_scripts/ /docker-entrypoint-initdb.d/
+
+# Set the necessary environment variables for PostgreSQL
+#ENV POSTGRES_USER postgres
+#ENV POSTGRES_PASSWORD password
+#ENV POSTGRES_DB mydatabase
+
+# Expose the default PostgreSQL port
+EXPOSE 5432
