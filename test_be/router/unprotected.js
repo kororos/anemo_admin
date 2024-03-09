@@ -25,7 +25,7 @@ function setAuthCookiesAndHeader(res, username) {
     const refreshToken = generateRefreshToken(username);
 
     // Set the access token as an HTTP-only cookie
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
+    res.cookie('refreshToken', refreshToken, { domain:'kororos.eu', httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     res.header('Authorization', `Bearer ${accessToken}`);
     const data = { username: username, accessToken: accessToken };
     return  data;
@@ -60,9 +60,9 @@ router.get('/session/oauth/google', async (req, res) => {
     const code = req.query.code;
     //get the id and the access token with code 
     const {id_token, access_token} = await getGoogleOAuthTokens(code);
-    console.log('id_token', id_token); 
-    console.log('access_token', access_token);
-    
+    //console.log('id_token', id_token); 
+    //console.log('access_token', access_token);
+    //console.log('req', req); 
     const redirect = JSON.parse(req.query.state);
     // get user with tokens
     const googleUser = jwt.decode(id_token);
@@ -83,7 +83,7 @@ router.get('/session/oauth/google', async (req, res) => {
     let data = setAuthCookiesAndHeader(res, googleUser.email);
     data = encodeURIComponent(JSON.stringify({...data, redirectUrl: redirect.from}));   
     // redirect back to client
-    res.redirect(`http://localhost:9000/#/login_successful?data=${data}`);
-    //res.redirect('#' + redirect.baseUrl  + redirect.from);
+    res.redirect(`${redirect.baseUrl}/#/login_successful?data=${data}`);
+    //res.redirect(redirect.baseUrl + '#' + redirect.from);
   });
 export default router;
