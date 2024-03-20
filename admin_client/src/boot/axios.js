@@ -16,10 +16,11 @@ const api = axios.create({
   baseURL: process.env.API_BASE_URL || "http://localhost:3000",
   withCredentials: true,
 });
+
 export default boot(({ app }) => {
   console.log(`API_BASE_URL: ${process.env.API_BASE_URL}`);
   api.interceptors.request.use((config) => {
-    const authStore = useAuthStore();
+    const authStore = useAuthStore();   
     if (authStore.user) {
       if (authStore.user.access_jwt) {
         config.headers = {

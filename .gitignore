@@ -130,3 +130,6 @@ dist
 .pnp.*
 
 ./uploads/
+
+# Exclude DS_store files from all subdirectories
+**/.DS_Store
