@@ -3,7 +3,7 @@
     <q-page class="column justify-center ">
       <summary-anemo-table class="q-ma-md" > </summary-anemo-table>
       <div class="row  justify-between q-ma-md">
-        <firmware-info-table ref = "firmwareInfoTable" class="q-mr-md col" style="min-width: 800px;"></firmware-info-table>
+        <firmware-info-table ref = "firmwareInfoTable" class="q-mr-md col" style="min-width: 500px;"></firmware-info-table>
         <q-card class="q-ml-md col" style="min-width: 400px; max-width: 400px;">
           <q-card-section>
             <q-linear-progress :value="progress" :color="progressColor" animation-speed="100" />
