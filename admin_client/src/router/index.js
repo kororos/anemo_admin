@@ -21,8 +21,8 @@ export default route(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
     : process.env.VUE_ROUTER_MODE === "history"
-    ? createWebHistory
-    : createWebHashHistory;
+      ? createWebHistory
+      : createWebHashHistory;
 
   const router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
@@ -35,14 +35,22 @@ export default route(function (/* { store, ssrContext } */) {
   });
 
   router.beforeEach((to, from) => {
+    const authStore = useAuthStore();
+    const requiredRoles = to.meta.roles;
+    if (requiredRoles) {
+      if (!requiredRoles.includes(authStore.user.role)) {
+        return { path: "/" };
+      }
+    }
     if (to.path === "/login_successful") {
-      const authStore = useAuthStore();
+
       let data;
       if (to.query.data) {
         data = JSON.parse(to.query.data);
         authStore.user = {
           username: data.username,
           access_jwt: data.accessToken,
+          role: data.role
         };
         return { path: data.redirectUrl };
       }

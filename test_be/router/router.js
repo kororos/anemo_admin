@@ -1,8 +1,10 @@
 import  express from 'express';
 import { sendCommand as sendAnemoCommand, getClientsMap} from "../anemoWebSocket.js";
 import { sendAdminCommand } from "../adminWebSocket.js";
+import { checkRole } from '../middleware/auth.js';
+
 const routes = express.Router();
-routes.post('/api/restart', (req, res, next) => {
+routes.post('/api/restart', await checkRole(['admin']), (req, res, next) => {
     // Restart logic goes here
     const uuid = req.body.uuid;
     // If an error occurs, pass it to the next middleware
@@ -19,7 +21,7 @@ routes.post('/api/restart', (req, res, next) => {
     }
 });
 
-routes.post('/api/getClients', (req, res, next) => {
+routes.post('/api/getClients', await checkRole(['admin']), (req, res, next) => {
     const uuid = req.body.uuid;
     // If an error occurs, pass it to the next middleware
     try {

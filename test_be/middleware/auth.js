@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import db from '../db/models/index.js';
 
 function isLoggedIn(req, res, next) {
   // Check if user is logged in
@@ -7,15 +8,15 @@ function isLoggedIn(req, res, next) {
     const token = authHeader.split(' ')[1];
     // Verify the token
     jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-        if (err) {
-            // If the token is invalid, send an unauthorized status
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-        // If the token is valid, store the user object in the request object
-        req.user = user;
-        // Proceed to the next middleware or route handler
-        next();
-        });
+      if (err) {
+        // If the token is invalid, send an unauthorized status
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      // If the token is valid, store the user object in the request object
+      req.user = user;
+      // Proceed to the next middleware or route handler
+      next();
+    });
     // User is logged in, proceed to the next middleware or route handler
     //next();
   } else {
@@ -24,5 +25,18 @@ function isLoggedIn(req, res, next) {
   }
 }
 
+export async function checkRole(roles) {
+  return async function (req, res, next) {
+    // Check if user has the correct role
+    const user = await db.User.findOne({ where: { name: req.user.username } });
+    if (!roles.includes(user.role)) {
+      // If the user does not have the correct role, send an unauthorized status
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
-export default  isLoggedIn;
+    // User has the correct role, proceed to the next middleware or route handler
+    next();
+  }
+}
+
+export default isLoggedIn;

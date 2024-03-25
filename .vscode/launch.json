@@ -16,7 +16,7 @@
                 "run-script",
                 "dev"
             ],
-            "cwd": "${workspaceFolder}\\test_be",
+            "cwd": "${workspaceFolder}/test_be",
             "env": {
                 "SECRET_KEY": "my_secret_key"
             }

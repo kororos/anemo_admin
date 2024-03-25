@@ -19,15 +19,15 @@ function generateRefreshToken(username) {
     return jwt.sign({ username }, secretKey, { expiresIn: refreshTokenLife });
 }
 
-function setAuthCookiesAndHeader(res, username) {
+function setAuthCookiesAndHeader(res, username, role) {
     // Generate a new access token
     const accessToken = generateAccessToken(username);
     const refreshToken = generateRefreshToken(username);
 
     // Set the access token as an HTTP-only cookie
-    res.cookie('refreshToken', refreshToken, { domain:'kororos.eu', httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
+    res.cookie('refreshToken', refreshToken, { /*domain:'kororos.eu',*/ httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     res.header('Authorization', `Bearer ${accessToken}`);
-    const data = { username: username, accessToken: accessToken };
+    const data = { username: username, role: role, accessToken: accessToken };
     return  data;
 }
 // Login route
@@ -68,19 +68,17 @@ router.get('/session/oauth/google', async (req, res) => {
     const googleUser = jwt.decode(id_token);
 
     // upsert the user 
-    const user = await db.User.upsert({
+    const userData = await db.User.upsert({
         name: googleUser.email,
         email: googleUser.email,
         family_name: googleUser.family_name,
         given_name: googleUser.given_name,
-        photo_link: googleUser.picture,
-        role: 'Guest'
-    });
-
+        photo_link: googleUser.picture
+        });
     // create the session 
   
     // create access and refresh token 
-    let data = setAuthCookiesAndHeader(res, googleUser.email);
+    let data = setAuthCookiesAndHeader(res, googleUser.email, userData[0].role);
     data = encodeURIComponent(JSON.stringify({...data, redirectUrl: redirect.from}));   
     // redirect back to client
     res.redirect(`${redirect.baseUrl}/#/login_successful?data=${data}`);

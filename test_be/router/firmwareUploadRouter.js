@@ -2,6 +2,7 @@ import  express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import { checkRole } from '../middleware/auth.js';
 
 const ROOT =process.cwd() + path.sep + 'uploads' + path.sep;
 
@@ -28,7 +29,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-routes.post('/api/firmwareUpload', upload.single('file'), (req, res, next) => {
+routes.post('/api/firmwareUpload', await checkRole(['admin']), upload.single('file'), (req, res, next) => {
     // # handle form data
     
     // # handle file upload
@@ -60,7 +61,7 @@ function validatePath(dir) {
 }
 
 // Create a post route at /api/deleteFirmware
-routes.post('/api/deleteFirmware', (req, res) => {
+routes.post('/api/deleteFirmware', await checkRole(['admin']), (req, res) => {
     // get the full version from the body
     const version = req.body.version;
     console.log("version: ", version);

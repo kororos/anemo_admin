@@ -4,12 +4,13 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { checkRole } from "../middleware/auth.js";
 
 // Create an instance of Express
 const router = express.Router();
 
 // Define the GET route
-router.get("/api/getFirmwareInfo", (req, res) => {
+router.get("/api/getFirmwareInfo", await checkRole(['admin']), (req, res) => {
   
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
