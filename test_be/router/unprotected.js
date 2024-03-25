@@ -34,7 +34,7 @@ function setAuthCookiesAndHeader(res, username, role) {
     //res.cookie('refreshToken', refreshToken, { domain:'kororos.eu', httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     res.header('Authorization', `Bearer ${accessToken}`);
     const data = { username: username, role: role, accessToken: accessToken };
-    return  data;
+    return data;
 }
 // Login route
 router.post('/login', (req, res) => {
@@ -43,7 +43,7 @@ router.post('/login', (req, res) => {
 
     // TODO: Implement your own validation logic here
     // For example, check if the username and password are correct
-    if(username !== 'admin' || password !== 'admin') {
+    if (username !== 'admin' || password !== 'admin') {
         // If the username and password are not valid, send an unauthorized status
         return res.sendStatus(401);
     }
@@ -65,7 +65,7 @@ router.get('/session/oauth/google', async (req, res) => {
     //Get the code from query string
     const code = req.query.code;
     //get the id and the access token with code 
-    const {id_token, access_token} = await getGoogleOAuthTokens(code);
+    const { id_token, access_token } = await getGoogleOAuthTokens(code);
     //console.log('id_token', id_token); 
     //console.log('access_token', access_token);
     //console.log('req', req); 
@@ -80,14 +80,33 @@ router.get('/session/oauth/google', async (req, res) => {
         family_name: googleUser.family_name,
         given_name: googleUser.given_name,
         photo_link: googleUser.picture
-        });
+    });
     // create the session 
-  
+
     // create access and refresh token 
     let data = setAuthCookiesAndHeader(res, googleUser.email, userData[0].role);
-    data = encodeURIComponent(JSON.stringify({...data, redirectUrl: redirect.from}));   
+    data = encodeURIComponent(JSON.stringify({ ...data, redirectUrl: redirect.from }));
     // redirect back to client
     res.redirect(`${redirect.baseUrl}/#/login_successful?data=${data}`);
     //res.redirect(redirect.baseUrl + '#' + redirect.from);
-  });
+});
+
+router.post('/refresh', (req, res) => {
+    const refreshToken = req.cookies['refreshToken'];
+    if (!refreshToken) {
+        return res.status(401).send('Access Denied. No refresh token provided.');
+    }
+
+    try {
+        const decoded = jwt.verify(refreshToken, secretKey);
+        //const accessToken = jwt.sign({ username: decoded.username }, secretKey, { expiresIn: accessTokenLife });
+        const accessToken = generateAccessToken(decoded.username);
+        res
+            .header('Authorization', `Bearer ${accessToken}`)
+            .send({ username: decoded.username });
+    } catch (error) {
+        return res.status(400).send('Invalid refresh token.');
+    }
+});
+
 export default router;
