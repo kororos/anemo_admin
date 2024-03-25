@@ -25,7 +25,13 @@ function setAuthCookiesAndHeader(res, username, role) {
     const refreshToken = generateRefreshToken(username);
 
     // Set the access token as an HTTP-only cookie
-    res.cookie('refreshToken', refreshToken, { domain:'kororos.eu', httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
+    const domain = process.env.NODE_ENV === 'production' ? 'kororos.eu' : 'localhost';
+    if (process.env.NODE_ENV === 'production') {
+        res.cookie('refreshToken', refreshToken, { domain: domain, httpOnly: true, sameSite: 'strict', secure: true, maxAge: 24 * 60 * 60 * 1000 });
+    } else {
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict', secure: false, maxAge: 24 * 60 * 60 * 1000 });
+    }
+    //res.cookie('refreshToken', refreshToken, { domain:'kororos.eu', httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     res.header('Authorization', `Bearer ${accessToken}`);
     const data = { username: username, role: role, accessToken: accessToken };
     return  data;

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --env-file .env.development index.js",
+    "prod": "NODE_ENV=production node --env-file .env.production index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Lefteris Kororos",

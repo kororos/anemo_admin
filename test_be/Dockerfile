@@ -21,4 +21,4 @@ RUN mkdir -p ./uploads
 EXPOSE 3000
 
 # Define the command to run the application
-CMD ["npm", "run-script", "dev"]
+CMD ["npm", "run-script", "prod"]
