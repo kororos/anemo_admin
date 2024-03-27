@@ -1,5 +1,5 @@
 import axios from 'axios';
-import config from '../db/config/config';
+import config from '../db/config/config.js';
 
 export async function getGoogleOAuthTokens(code) {
     const url = 'https://oauth2.googleapis.com/token';
