@@ -1,4 +1,6 @@
 import axios from 'axios';
+import config from '../db/config/config';
+
 export async function getGoogleOAuthTokens(code) {
     const url = 'https://oauth2.googleapis.com/token';
     const options = {
@@ -9,8 +11,8 @@ export async function getGoogleOAuthTokens(code) {
     };
     const data = {
         code,
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        client_id: config[process.env.NODE_ENV].googleClientId,
+        client_secret: config[process.env.NODE_ENV].googleClientSecret,
         redirect_uri: process.env.GOOGLE_REDIRECT_URI,
         grant_type: 'authorization_code'
     }
