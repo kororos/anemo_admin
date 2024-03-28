@@ -8,7 +8,15 @@ const accessTokenLife = '2m';
 const secretKey = process.env.SECRET_KEY;
 
 router.post('/logout', (req, res) => {
-    res.clearCookie('refreshToken');
+
+    // Set the access token as an HTTP-only cookie
+    //const domain = process.env.NODE_ENV === 'production' ? 'kororos.eu' : 'localhost';
+
+    if (process.env.NODE_ENV === 'production') {
+        res.clearCookie('refreshToken', { domain: 'kororos.eu', httpOnly: true, secure: true, sameSite: 'strict' });
+    } else {
+        res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'strict' });
+    }
     res.send();
 });
 
