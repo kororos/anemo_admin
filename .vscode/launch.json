@@ -20,6 +20,22 @@
             "env": {
                 "SECRET_KEY": "my_secret_key"
             }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program Simple WS Server",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "index.js"
+            ],
+            "cwd": "${workspaceFolder}/ws_server",
+            "env": {
+                
+            }
         }
     ]
 }
