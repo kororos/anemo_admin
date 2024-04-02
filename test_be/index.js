@@ -47,7 +47,7 @@ const wssAdmin = startAdminWebSocketServer(server);
 
 server.on('upgrade', (request, socket, head) => {
     const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
-    console.log('upgrade request:', request.url, request.headers.host, pathname);
+    //console.log('upgrade request:', request.url, request.headers.host, pathname);
     if (pathname === '/ws/anemometer') {
         wssAnemo.handleUpgrade(request, socket, head, (ws) => {
             wssAnemo.emit('connection', ws, request);
