@@ -57,7 +57,7 @@ function startAnemoWebSocketServer(server) {
     });
   }
 
-  setInterval(() => sendMessage(), 1000);
+  //setInterval(() => sendMessage(), 1000);
   return wss;
 }
 function sendCommand(command){
