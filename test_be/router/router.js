@@ -24,7 +24,7 @@ routes.post('/api/restart', await checkRole(['admin']), async(req, res, next) =>
             currentFwVersion: currentFwVersion,
             requestedFwVersion: firmware.swVersion,
             initiatorUserId: req.userId,
-            status: 'PENDING'
+            status: currentFwVersion == requestedFwVersion ? 'COMPLETED' : 'PENDING'
         });
         console.log("firmwareUpdate: ", firmwareUpdate);
     } catch(error){
