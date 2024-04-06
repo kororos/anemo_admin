@@ -21,6 +21,7 @@ import { useWebSocketStore } from "src/stores/webSocketStore";
 import { api } from '../boot/axios.js';
 
 const store = useWebSocketStore();
+const emit = defineEmits(['restartSuccess', 'restartFail']);
 
 const columns = [
   {
@@ -61,16 +62,18 @@ const rows = computed(() => store.clients);
 function performAction(row) {
   // Perform your specific action here
   console.log(`Performing action on: ${row.uuid}`);
-  restartClient(row.uuid);
+  restartClient(row);
 }
 
-function restartClient(uuid) {
+function restartClient(row) {
   // Call post api /api/deleteFirmware with the full version as the parameter
-  api.post('/api/restart', { uuid: uuid })
+  api.post('/api/restart', { uuid: row.uuid, currentFwVersion: row.swVersion, currentHwVersion: row.hwVersion })
     .then(response => {
+      emit('restartSuccess')
       console.log(response);
     })
     .catch(error => {
+      emit('restartFail');
       console.error(error);
     });
 }

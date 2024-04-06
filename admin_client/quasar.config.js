@@ -11,6 +11,7 @@
 
 const { configure } = require('quasar/wrappers');
 const path = require('path');
+const { Notify } = require('quasar');
 require('dotenv').config();
   module.exports = configure(function (/* ctx */) {
   return {
@@ -120,7 +121,14 @@ require('dotenv').config();
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'Notify'
+      ],
+      config: {
+        notify: {
+          /* Notify defaults */
+        }
+      }
     },
 
     // animations: 'all', // --- includes all animations

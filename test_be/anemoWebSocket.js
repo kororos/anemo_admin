@@ -8,7 +8,6 @@ const clients = new Map();
 
 function startAnemoWebSocketServer(server) {
   let count = 0;
-  //const wss = new WebSocket.Server({ port: 3000, path: "/ws/anemometer" });
   const wss = new WebSocketServer({ noServer: true, path: "/ws/anemometer"});
   console.log("WebSocket server for anemometers is running on port 3000");
   wss.on("connection", (ws, req) => {

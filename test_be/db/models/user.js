@@ -10,6 +10,12 @@ export default (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      this.hasMany(models.PendingUpdates, 
+        {
+          foreignKey: 'initiatorUserId',
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL'
+        })
     }
   }
   User.init({

@@ -2,8 +2,8 @@ import dockerSecret from './secrets.js';
 
 export default {
   development: {
-    username: dockerSecret.read(process.env.DB_USER_DEV_FILE) || process.env.DB_USERNAME_DEV || "anemo-dev",
-    password: dockerSecret.read(process.env.DB_PASSWORD_DEV_FILE) || process.env.DB_PASSWORD_DEV || "anemo-dev",
+    username: dockerSecret.read(process.env.DB_USER_DEV_FILE) || process.env.DB_USERNAME_DEV || "anemo_admin",
+    password: dockerSecret.read(process.env.DB_PASSWORD_DEV_FILE) || process.env.DB_PASSWORD_DEV || "anemo_admin",
     database: process.env.DB_NAME_DEV || "anemo-admin-dev",
     host: process.env.DB_HOST_DEV || "127.0.0.1",
     dialect: "postgres",

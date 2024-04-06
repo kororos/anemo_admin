@@ -2,6 +2,8 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { getGoogleOAuthTokens } from '../services/user.service.js';
 import db from '../db/models/index.js';
+import path  from 'path';
+import e from 'express';
 
 const accessTokenLife = '2m';
 const refreshTokenLife = '1d';
@@ -60,7 +62,6 @@ router.post('/login', (req, res) => {
     res.send({ username: username });
 });
 
-
 router.get('/session/oauth/google', async (req, res) => {
     //Get the code from query string
     const code = req.query.code;
@@ -106,6 +107,34 @@ router.post('/refresh', (req, res) => {
             .send({ username: decoded.username });
     } catch (error) {
         return res.status(400).send('Invalid refresh token.');
+    }
+});
+
+//# Create a GET API route at /api/otaUpdate to handle the OTA Update request
+//# from the ESP8266HttpUpdate library
+
+router.get('/api/otaUpdate', async (req, res) => {
+    // Get the firmware version from the query string
+    const currentFwVersion = req.headers['x-esp8266-version'];
+    const hwVersion = 'dht_11';
+    let availableFirmware;
+
+    try{
+        availableFirmware = await db.Firmware.findOne({
+            where: {hwVersion: hwVersion},
+            order: [['id', 'DESC']]
+        });
+
+        const ROOT =process.cwd() + path.sep + 'uploads' + path.sep;
+        const dir = `${ROOT}${path.sep}${hwVersion}${path.sep}${availableFirmware.swVersion}`;
+        if(currentFwVersion !== availableFirmware.swVersion){
+            res.sendFile(`${dir}${path.sep}firmware.bin`);
+        }else{
+            res.status(304).send('No updates available');
+        }
+    }catch(error){
+        console.error("error: ", error);
+        res.status(500).json({message: 'An error occurred while fetching the firmware from DB'});
     }
 });
 

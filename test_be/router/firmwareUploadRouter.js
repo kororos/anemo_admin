@@ -3,6 +3,7 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { checkRole } from '../middleware/auth.js';
+import db from '../db/models/index.js';
 
 const ROOT =process.cwd() + path.sep + 'uploads' + path.sep;
 
@@ -29,9 +30,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-routes.post('/api/firmwareUpload', await checkRole(['admin']), upload.single('file'), (req, res, next) => {
-    // # handle form data
-    
+routes.post('/api/firmwareUpload', await checkRole(['admin']), upload.single('file'), async (req, res, next) => {
+    // # handle form data  
     // # handle file upload
     const file = req.file;
     console.log("file: ", file);
@@ -42,7 +42,15 @@ routes.post('/api/firmwareUpload', await checkRole(['admin']), upload.single('fi
     const swVersion = req.body.swVersion;
     console.log("swVersion: ", swVersion);
     // Process the uploaded firmware here
-    
+    const dir = `${ROOT}${path.sep}${hwVersion}${path.sep}${swVersion}`;
+    const firmware = await db.Firmware.create({
+        hwVersion: hwVersion,
+        swVersion: swVersion,
+        path: dir,
+        filename: file.originalname
+    });
+
+    console.log("firmware: ", firmware.toJSON());
     // # send response
     res.send('Firmware uploaded and updated successfully');
 }, (error, req, res, next) => {
@@ -61,7 +69,7 @@ function validatePath(dir) {
 }
 
 // Create a post route at /api/deleteFirmware
-routes.post('/api/deleteFirmware', await checkRole(['admin']), (req, res) => {
+routes.post('/api/deleteFirmware', await checkRole(['admin']), async (req, res) => {
     // get the full version from the body
     const version = req.body.version;
     console.log("version: ", version);
@@ -73,6 +81,17 @@ routes.post('/api/deleteFirmware', await checkRole(['admin']), (req, res) => {
     }
     if (fs.existsSync(filepath)){
         fs.rmSync(filepath, { recursive: true });
+    }
+    try{
+        //delete the record from the database
+        await db.Firmware.destroy({
+            where: {
+                id: req.body.id
+            }
+        });
+    } catch (error) {
+        console.log("error: ", error);
+        res.status(403).send(error.message);
     }
 
     // # send response

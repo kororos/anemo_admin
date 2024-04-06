@@ -23,12 +23,14 @@
 <script setup>
 import { ref } from 'vue';
 import { api } from '../boot/axios.js';
+import { useQuasar } from 'quasar';
 
+const $q = useQuasar();
 const hwVersion = ref('');
 const swVersion = ref('');
 const path = ref(null);
 const uploadProgress = ref(0);
-const emit = defineEmits(['progressUpload', 'uploadFinished']);
+const emit = defineEmits(['progressUpload', 'uploadFinished', 'uploadError']);
 
 
 function enabled() {
@@ -62,6 +64,7 @@ async function submitForm() {
 
   }).catch((error) => {
     console.error(error);
+    emit('uploadError');
   })
 
 

@@ -27,19 +27,23 @@ function isLoggedIn(req, res, next) {
 
 export async function checkRole(roles) {
   return async function (req, res, next) {
-    // Check if user has the correct role
-    const user = await db.User.findOne({ where: { name: req.user.username } });
-    if (user.role != undefined) {
-      if (!roles.includes(user.role)) {
-        // If the user does not have the correct role, send an unauthorized status
-        return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      // Check if user has the correct role
+      const user = await db.User.findOne({ where: { name: req.user.username } });
+      if (user.role != undefined) {
+        if (!roles.includes(user.role)) {
+          // If the user does not have the correct role, send an unauthorized status
+          return res.status(401).json({ error: 'Unauthorized' });
+        }
+      } else {
+        return res.status(401).json({ error: 'Need to Upgrade DB schema. Role is not in the database' });
       }
-    }else {
-      return res.status(401).json({ error: 'Need to Upgrade DB schema. Role is not in the database' });
+      req.userId = user.id;
+      // User has the correct role, proceed to the next middleware or route handler
+      next();
+    } catch (error) {
+      next(error);
     }
-
-    // User has the correct role, proceed to the next middleware or route handler
-    next();
   }
 }
 

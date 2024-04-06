@@ -135,12 +135,10 @@ async function connectProdWs(){
         await prodWsClient.close();
         connectProdWs();
     }
-  }
-  );
+  });
   prodWsClient.on("error", (err) => {
       console.log(`[PRODUCTION WS]: Error ${err}WebSocket`);
-  });
-
+  }); 
 }
 
 async function connectWs() {
