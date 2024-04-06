@@ -116,7 +116,7 @@ router.post('/refresh', (req, res) => {
 router.get('/api/otaUpdate', async (req, res) => {
     // Get the firmware version from the query string
     const currentFwVersion = req.headers['x-esp8266-version'];
-    const hwVersion = 'dht_11';
+    const hwVersion = '1.0';
     let availableFirmware;
 
     try{
