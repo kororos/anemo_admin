@@ -128,7 +128,7 @@ router.get('/api/otaUpdate', async (req, res) => {
 
         const ROOT =process.cwd() + path.sep + 'uploads' + path.sep;
         const dir = `${ROOT}${path.sep}${hwVersion}${path.sep}${availableFirmware.swVersion}`;
-        if(currentFwVersion !== availableFirmware.swVersion){
+        if(fwVersion !== availableFirmware.swVersion){
             res.sendFile(`${dir}${path.sep}firmware.bin`);
         }else{
             res.status(304).send('No updates available');
