@@ -1,6 +1,7 @@
 import {WebSocketServer} from "ws";
 import url from "url";
 import { v4 as uuidv4 } from "uuid";
+import db from "./db/models/index.js";
 
 import { sendAdminCommandToAll } from "./adminWebSocket.js";
 
@@ -10,18 +11,27 @@ function startAnemoWebSocketServer(server) {
   let count = 0;
   const wss = new WebSocketServer({ noServer: true, path: "/ws/anemometer"});
   console.log("WebSocket server for anemometers is running on port 3000");
-  wss.on("connection", (ws, req) => {
+  wss.on("connection", async (ws, req) => {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
       .searchParams;
     const clientId = parameters.get("clientId");
     const hwVersion = parameters.get("hwVersion");
     const swVersion = parameters.get("swVersion");
+    const mac = parameters.get("mac");
     const uuid = uuidv4();
-    clients.set(uuid, { clientId: clientId, hwVersion: hwVersion, swVersion:swVersion, ws: ws });
+    clients.set(mac, { clientId: clientId, hwVersion: hwVersion, swVersion:swVersion, mac:mac, uuid: uuid, ws: ws });
     console.log(
       `Client with ClientId: ${clientId}, hwVersion: ${hwVersion} and uuid: ${uuid} CONNECTED`
     );
     
+    await db.Device.upsert({
+      name: clientId,
+      hwVersion: hwVersion,
+      fwVersion: swVersion,
+      macAddress: mac,
+      lastConnection: new Date()
+    });
+
     sendAdminCommandToAll({
       command: "getClientsMap",
       clientsArray: getClientsArray()
@@ -34,8 +44,8 @@ function startAnemoWebSocketServer(server) {
 
     ws.on("close", () => {
       // Handle client disconnection here
-      clients.delete(uuid);
-      console.log(`Client with uuid: ${uuid} disconnected`);
+      clients.delete(mac);
+      console.log(`Client with uuid: ${uuid} and mac: ${mac} disconnected`);
       sendAdminCommandToAll({
         command: "getClientsMap",
         //clientsMap: Object.fromEntries(clients.entries())
@@ -61,7 +71,7 @@ function startAnemoWebSocketServer(server) {
 }
 function sendCommand(command){
   console.log(JSON.stringify(command));
-  const client = clients.get(command.uuid);
+  const client = clients.get(command.mac);
   console.log(`Client is: ${command.uuid}`);
   client.ws.send(command.command);
 }
@@ -77,11 +87,12 @@ function getClientsArray(){
   clients.forEach((client, key) => {
     clientsArray.push({
       clientId: client.clientId,
-      uuid: key,
+      uuid: client.uuid,
       status: client.ws.readyState,
       statusText: readyStateMap[client.ws.readyState],
       hwVersion: client.hwVersion,
-      swVersion: client.swVersion
+      swVersion: client.swVersion,
+      mac: key
     })
   });
   return clientsArray;

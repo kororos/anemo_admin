@@ -3,7 +3,7 @@ import { sendCommand, getClientsArray } from "./anemoWebSocket.js";
 import url from "url";
 import { v4 as uuidv4 } from "uuid";
 
-const clients = new Map();
+const adminClients = new Map();
 
 function startAdminWebSocketServer(server) {
   let count = 0;
@@ -15,7 +15,7 @@ function startAdminWebSocketServer(server) {
       .searchParams;
     const clientId = parameters.get("clientId");
     const uuid = uuidv4();
-    clients.set(uuid, { clientId: clientId, ws: ws });
+    adminClients.set(uuid, { clientId: clientId, ws: ws });
     console.log(
       `[${new Date().toISOString()}]: Client with ClientId: ${clientId} and uuid: ${uuid} CONNECTED`
     );
@@ -34,7 +34,7 @@ function startAdminWebSocketServer(server) {
 
     ws.on("close", () => {
       // Handle client disconnection here
-      clients.delete(uuid);
+      adminClients.delete(uuid);
       console.log(`[${new Date().toISOString()}]: Client with uuid: ${uuid} disconnected`);
     });
 
@@ -52,11 +52,11 @@ function startAdminWebSocketServer(server) {
 }
 
 function sendAdminCommand(uuid, command) {
-  clients.get(uuid).ws.send(JSON.stringify(command));
+  adminClients.get(uuid).ws.send(JSON.stringify(command));
 }
 
 function sendAdminCommandToAll(command){
-  clients.forEach(({ ws }) => {
+  adminClients.forEach(({ ws }) => {
     ws.send(JSON.stringify(command));
   });
 }

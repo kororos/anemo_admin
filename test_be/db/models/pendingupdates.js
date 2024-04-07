@@ -21,6 +21,7 @@ export default (sequelize, DataTypes) => {
     status: {
       type: DataTypes.ENUM('PENDING', 'COMPLETED', 'FAILED'),
     },
+    macAddress: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'PendingUpdates',

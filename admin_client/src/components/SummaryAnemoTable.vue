@@ -41,6 +41,13 @@ const columns = [
     field: "uuid",
   },
   {
+    name: "mac",
+    required: false,
+    label: "MAC",
+    align: "left",
+    field: "mac",
+  },
+  {
     name: "hwVersion",
     required: false,
     label: "HW Version",
@@ -67,7 +74,7 @@ function performAction(row) {
 
 function restartClient(row) {
   // Call post api /api/deleteFirmware with the full version as the parameter
-  api.post('/api/restart', { uuid: row.uuid, currentFwVersion: row.swVersion, currentHwVersion: row.hwVersion })
+  api.post('/api/restart', { mac: row.mac, uuid: row.uuid, currentFwVersion: row.swVersion, currentHwVersion: row.hwVersion })
     .then(response => {
       emit('restartSuccess')
       console.log(response);

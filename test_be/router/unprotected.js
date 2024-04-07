@@ -118,18 +118,29 @@ router.get('/api/otaUpdate', async (req, res) => {
     const currentFullVersion = req.headers['x-esp8266-version'];
     const hwVersion = currentFullVersion.split('-')[0];
     const fwVersion = currentFullVersion.split('-')[1];
-    let availableFirmware;
 
     try{
-        availableFirmware = await db.Firmware.findOne({
-            where: {hwVersion: hwVersion},
+        const requestedFirmware = await db.PendingUpdates.findOne({
+            where: {status: 'PENDING', macAddress: req.headers['x-esp8266-sta-mac']},
             order: [['id', 'DESC']]
         });
-
+        if(!requestedFirmware){
+            res.status(304).json({message: 'No firmware request found for the given mac'});
+            return;
+        }
+        const availableFirmware = await db.Firmware.findOne({
+            where: {hwVersion: hwVersion, swVersion: requestedFirmware.requestedFwVersion},
+            order: [['id', 'DESC']]
+        });
+        if(!availableFirmware){
+            res.status(304).json({message: 'No firmware found for the given hwVersion'});
+            return;
+        }
         const ROOT =process.cwd() + path.sep + 'uploads' + path.sep;
         const dir = `${ROOT}${path.sep}${hwVersion}${path.sep}${availableFirmware.swVersion}`;
         if(fwVersion !== availableFirmware.swVersion){
             res.sendFile(`${dir}${path.sep}firmware.bin`);
+            await db.PendingUpdates.update({status: 'COMPLETED'}, {where: {id: requestedFirmware.id}});
         }else{
             res.status(304).send('No updates available');
         }
