@@ -1,14 +1,7 @@
 <template>
-  <q-item
-    clickable
-    tag="a"
-    target="_blank"
-    :href="link"
-  >
-    <q-item-section
-      v-if="icon"
-      avatar
-    >
+  <q-item clickable v-if="page" :to="page">
+
+    <q-item-section v-if="icon" avatar>
       <q-icon :name="icon" />
     </q-item-section>
 
@@ -17,6 +10,18 @@
       <q-item-label caption>{{ caption }}</q-item-label>
     </q-item-section>
   </q-item>
+
+  <q-item clickable v-else :href="link" target="_blank" tag="a">
+    <q-item-section v-if="icon" avatar>
+      <q-icon :name="icon" />
+    </q-item-section>
+
+    <q-item-section>
+      <q-item-label>{{ title }}</q-item-label>
+      <q-item-label caption>{{ caption }}</q-item-label>
+    </q-item-section>
+  </q-item>
+
 </template>
 
 <script>
@@ -41,6 +46,10 @@ export default defineComponent({
     },
 
     icon: {
+      type: String,
+      default: ''
+    },
+    page: {
       type: String,
       default: ''
     }

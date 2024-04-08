@@ -60,6 +60,18 @@ import WebSocketStateIcon from 'src/components/WebSocketStateIcon.vue';
 import { useAuthStore } from '@/stores/authStore';
 
 const linksList = [
+{
+    title: 'Dashboard',
+    caption: 'View all devices',
+    icon: 'home',
+    page: '/',
+  },
+  {
+    title: 'Devices',
+    caption: 'View all devices',
+    icon: 'air',
+    page: '/devices',
+  },
   {
     title: 'Docs',
     caption: 'quasar.dev',
