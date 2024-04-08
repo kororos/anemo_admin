@@ -1,15 +1,8 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
-      <q-toolbar >
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+      <q-toolbar>
+        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title>
           Anemometer
@@ -18,29 +11,24 @@
           <web-socket-state-icon class="q-pr-md" />
         </div>
         <div>Quasar v{{ $q.version }}</div>
-        <div> <q-toggle v-model="darkMode" color="yellow"  label="Dark Mode" /> </div>
+        <div> <q-toggle v-model="darkMode" color="yellow" label="Dark Mode" /> </div>
         <div><q-btn flat round dense icon="logout" aria-label="Logout" @click="authStore.logout()" />
         </div>
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label
-          header
-        >
+        <q-item-label header>
+          Menu
+        </q-item-label>
+        <EssentialLink v-for="link in menuLinksList" :key="link.title" v-bind="link" />
+        <q-separator />
+        <q-item-label header>
           Essential Links
         </q-item-label>
 
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-        />
+        <EssentialLink v-for="link in essentialLinks" :key="link.title" v-bind="link" />
       </q-list>
     </q-drawer>
 
@@ -59,8 +47,8 @@ import { useWebSocketStore } from '../stores/webSocketStore.js';
 import WebSocketStateIcon from 'src/components/WebSocketStateIcon.vue';
 import { useAuthStore } from '@/stores/authStore';
 
-const linksList = [
-{
+const menuLinksList = [
+  {
     title: 'Dashboard',
     caption: 'View all devices',
     icon: 'home',
@@ -72,6 +60,14 @@ const linksList = [
     icon: 'air',
     page: '/devices',
   },
+  {
+    title: 'Upload Firmware',
+    caption: 'Upload new firmware',
+    icon: 'cloud_upload',
+    page: '/uploadFirmware',
+  }
+]
+const linksList = [
   {
     title: 'Docs',
     caption: 'quasar.dev',
@@ -124,7 +120,7 @@ watch(darkMode, (value) => {
   $q.dark.set(value);
 })
 
-function toggleLeftDrawer () {
+function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 const store = useWebSocketStore();
@@ -135,6 +131,4 @@ onMounted(() => {
 
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
