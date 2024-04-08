@@ -39,13 +39,15 @@ function setAuthCookiesAndHeader(res, username, role) {
     return data;
 }
 // Login route
-router.post('/login', (req, res) => {
+router.post('/login', async(req, res) => {
     // Get the username and password from the request body
     const { username, password, redirectUrl } = req.body;
 
     // TODO: Implement your own validation logic here
     // For example, check if the username and password are correct
-    if (username !== 'admin' || password !== 'admin') {
+
+    const user = await db.User.findOne({ where: { name: username, password: password, status: 'active' } });
+    if (!user) {
         // If the username and password are not valid, send an unauthorized status
         return res.sendStatus(401);
     }
@@ -57,9 +59,9 @@ router.post('/login', (req, res) => {
     // //TODO For testing purposes, the domain is set to localhost. In a production environment, the domain should be set to the actual domain of the application.
     // res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' , secure: false, maxAge: 24 * 60 * 60 * 1000});
     // res.header('Authorization', `Bearer ${accessToken}`);
-    setAuthCookiesAndHeader(res, username);
+    setAuthCookiesAndHeader(res, username, user.role.toLowerCase());
     // Send a success response
-    res.send({ username: username });
+    res.send({ username: username, role: user.role.toLowerCase() });
 });
 
 router.get('/session/oauth/google', async (req, res) => {
@@ -92,7 +94,7 @@ router.get('/session/oauth/google', async (req, res) => {
     //res.redirect(redirect.baseUrl + '#' + redirect.from);
 });
 
-router.post('/refresh', (req, res) => {
+router.post('/refresh', async (req, res) => {
     const refreshToken = req.cookies['refreshToken'];
     if (!refreshToken) {
         return res.status(401).send('Access Denied. No refresh token provided.');
@@ -101,10 +103,14 @@ router.post('/refresh', (req, res) => {
     try {
         const decoded = jwt.verify(refreshToken, secretKey);
         //const accessToken = jwt.sign({ username: decoded.username }, secretKey, { expiresIn: accessTokenLife });
+        const user = await db.User.findOne({ where: { name: decoded.username, status: 'active' } });
+        if (!user) {
+            return res.status(401).send('Access Denied. User not found.');
+        }
         const accessToken = generateAccessToken(decoded.username);
         res
             .header('Authorization', `Bearer ${accessToken}`)
-            .send({ username: decoded.username });
+            .send({ username: decoded.username, role: user.role.toLowerCase()});
     } catch (error) {
         return res.status(400).send('Invalid refresh token.');
     }

@@ -7,12 +7,19 @@ const routes = [
       { path: '', component: () => import('pages/IndexPage.vue') }
     ],
   },
-
   {
     path: '/uploadFirmware',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/UploadFirmware.vue') }
+    ],
+    meta: { roles: ['admin'] }
+  },
+  {
+    path: '/devices',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/DevicesPage.vue') }
     ],
     meta: { roles: ['admin'] }
   },

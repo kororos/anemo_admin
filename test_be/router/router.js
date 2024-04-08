@@ -77,6 +77,18 @@ routes.post('/api/getClients', await checkRole(['admin']), (req, res, next) => {
     }
 });
 
+routes.get('/api/getKnownDevices', await checkRole(['admin']), async (req, res, next) => {
+    try {
+        const devices = await db.Device.findAll({
+            attributes: ['id', ['name', 'clientId'], 'hwVersion', 'fwVersion', 'macAddress', 'lastConnection']
+        });
+        console.log("devices; ", JSON.stringify(devices, null, 2));
+        res.json(devices);
+    } catch (error) {
+        res.status(403).send(error.message);
+    }
+});
+
 
 
 export default routes;
