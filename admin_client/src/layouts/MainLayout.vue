@@ -22,7 +22,7 @@
         <q-item-label header>
           Menu
         </q-item-label>
-        <EssentialLink v-for="link in menuLinksList" :key="link.title" v-bind="link" />
+        <EssentialLink v-for="link in menuLinksList" active-class="active-item" :key="link.title" v-bind="link" />
         <q-separator />
         <q-item-label header>
           Essential Links
@@ -32,7 +32,7 @@
       </q-list>
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="test">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -131,4 +131,28 @@ onMounted(() => {
 
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+body.body--dark {
+  .active-item {
+    background-color: $blue-10;
+    color: white
+  }
+  .test {
+    background-color: $blue-grey-10;
+  
+  }
+}
+
+.active-item  {
+  background-color: $indigo-9;
+  color: white;
+  
+}
+.active-item .text-caption {
+  color: $yellow-10;
+}
+.test {
+  background-color: $grey-2;
+}
+
+</style>
