@@ -43,14 +43,14 @@ routes.post('/api/firmwareUpload', await checkRole(['admin']), upload.single('fi
     console.log("swVersion: ", swVersion);
     // Process the uploaded firmware here
     const dir = `${ROOT}${path.sep}${hwVersion}${path.sep}${swVersion}`;
-    const firmware = await db.Firmware.create({
+    const firmware = await db.Firmware.upsert({
         hwVersion: hwVersion,
         swVersion: swVersion,
         path: dir,
         filename: file.originalname
     });
 
-    console.log("firmware: ", firmware.toJSON());
+    console.log("firmware: ", firmware[0].toJSON());
     // # send response
     res.send('Firmware uploaded and updated successfully');
 }, (error, req, res, next) => {

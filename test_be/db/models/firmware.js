@@ -13,12 +13,18 @@ export default (sequelize, DataTypes) => {
     }
   }
   Firmware.init({
-    swVersion: DataTypes.STRING,
-    hwVersion: DataTypes.STRING,
+    swVersion: {
+      type: DataTypes.STRING,
+      unique: 'hwVersion_swVersion'
+    },
+    hwVersion: {
+      type: DataTypes.STRING,
+      unique: 'hwVersion_swVersion'
+    },
     path: DataTypes.STRING,
     filename: DataTypes.STRING,
     createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE
+    updatedAt: DataTypes.DATE,
   }, {
     sequelize,
     modelName: 'Firmware',

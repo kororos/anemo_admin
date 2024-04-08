@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { getGoogleOAuthTokens } from '../services/user.service.js';
 import db from '../db/models/index.js';
 import path  from 'path';
-import e from 'express';
 
 const accessTokenLife = '2m';
 const refreshTokenLife = '1d';
@@ -13,14 +12,40 @@ const router = express.Router();
 //TODO this needs to be moved to a .env file
 const secretKey = process.env.SECRET_KEY;
 
+/**
+ * Generates an access token for the given username.
+ * This function uses the jsonwebtoken library to generate a JWT access token with the username as the payload.
+ * The token is signed with a secret key and has a specified lifespan.
+ *
+ * @param {string} username - The username for which to generate the access token.
+ * @returns {string} - A JWT access token.
+ */
 function generateAccessToken(username) {
     return jwt.sign({ username }, secretKey, { expiresIn: accessTokenLife });
 }
 
+/**
+ * Generates a refresh token for the given username.
+ * This function uses the jsonwebtoken library to generate a JWT refresh token with the username as the payload.
+ * The token is signed with a secret key and has a specified lifespan.
+ *
+ * @param {string} username - The username for which to generate the refresh token.
+ * @returns {string} - A JWT refresh token.
+ */
 function generateRefreshToken(username) {
     return jwt.sign({ username }, secretKey, { expiresIn: refreshTokenLife });
 }
 
+/**
+ * Sets the authentication cookies and header for the response.
+ * This function generates an access token and a refresh token for the given username,
+ * sets them as HTTP-only cookies, and sets the 'Authorization' header with the access token.
+ *
+ * @param {Object} res - The Express response object.
+ * @param {string} username - The username for which to generate the tokens.
+ * @param {string} role - The role of the user.
+ * @returns {Object} - An object containing the username, role, and access token.
+ */
 function setAuthCookiesAndHeader(res, username, role) {
     // Generate a new access token
     const accessToken = generateAccessToken(username);
@@ -38,7 +63,18 @@ function setAuthCookiesAndHeader(res, username, role) {
     const data = { username: username, role: role, accessToken: accessToken };
     return data;
 }
-// Login route
+
+ /**
+ * POST /login
+ * This route handler authenticates a user.
+ * It receives a username and password from the request body, validates them,
+ * generates an access token and a refresh token, sets them as HTTP-only cookies,
+ * and sends a success response with the username and role.
+ *
+ * @param {Object} req - The Express request object. The request body should contain a 'username' and 'password'.
+ * @param {Object} res - The Express response object. The response will contain the 'username' and 'role' in the response body.
+ * @returns {Promise<void>} - A Promise that resolves when the method has finished executing.
+ */
 router.post('/login', async(req, res) => {
     // Get the username and password from the request body
     const { username, password, redirectUrl } = req.body;
@@ -64,6 +100,17 @@ router.post('/login', async(req, res) => {
     res.send({ username: username, role: user.role.toLowerCase() });
 });
 
+/**
+ * Route handling method for '/session/oauth/google'.
+ * This method handles the OAuth process with Google.
+ * It receives a code from the query string, exchanges it for an ID token and an access token,
+ * decodes the ID token to get the user's Google profile information,
+ * and then upserts (updates or inserts) the user in the database.
+ *
+ * @param {Object} req - The Express request object.
+ * @param {Object} res - The Express response object.
+ * @returns {Promise<void>} - A Promise that resolves when the method has finished executing.
+ */
 router.get('/session/oauth/google', async (req, res) => {
     //Get the code from query string
     const code = req.query.code;
@@ -94,6 +141,17 @@ router.get('/session/oauth/google', async (req, res) => {
     //res.redirect(redirect.baseUrl + '#' + redirect.from);
 });
 
+/**
+ * POST /refresh
+ * This route handler refreshes the user's access token.
+ * It receives a refresh token from the request cookies, verifies it,
+ * generates a new access token, sets the 'Authorization' header with the new access token,
+ * and sends a success response with the username and role.
+ *
+ * @param {Object} req - The Express request object. The request cookies should contain a 'refreshToken'.
+ * @param {Object} res - The Express response object. The response will contain the 'username' and 'role' in the response body.
+ * @returns {Promise<void>} - A Promise that resolves when the method has finished executing.
+ */
 router.post('/refresh', async (req, res) => {
     const refreshToken = req.cookies['refreshToken'];
     if (!refreshToken) {
@@ -116,9 +174,19 @@ router.post('/refresh', async (req, res) => {
     }
 });
 
-//# Create a GET API route at /api/otaUpdate to handle the OTA Update request
-//# from the ESP8266HttpUpdate library
-
+/**
+ * GET /api/otaUpdate
+ * This route handler handles the OTA (Over The Air) update process.
+ * It receives a firmware version and a MAC address from the request headers,
+ * checks if there is a pending firmware update request for the given MAC address,
+ * and if there is, it checks if the requested firmware version is available.
+ * If the requested firmware version is available, it sends it in the response.
+ * If not, it sends a 'No firmware request found for the given mac' message.
+ *
+ * @param {Object} req - The Express request object. The request headers should contain 'x-esp8266-version' and 'x-esp8266-sta-mac'.
+ * @param {Object} res - The Express response object. The response will contain the firmware file or a message.
+ * @returns {Promise<void>} - A Promise that resolves when the method has finished executing.
+ */
 router.get('/api/otaUpdate', async (req, res) => {
     // Get the firmware version from the query string
     const currentFullVersion = req.headers['x-esp8266-version'];
