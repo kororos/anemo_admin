@@ -55,6 +55,7 @@ const columns = [
   {
     name: "status",
     label: "Status",
+    field: "status",
     required: true,
     align: "left",
   },
@@ -79,7 +80,7 @@ const populateDevices = async () => {
 // For each device, check if the device is online by checking the clients array in the store
 // If the device is in the clients array of the store, set the status to "Online"
 // If the device is not in the clients array of the store, set the status to "Offline"
-const checkDeviceStatus = () => {
+const checkDeviceStatus = async () => {
   rows.value.forEach((device) => {
     if (store.clients.find((client) => client.mac === device.macAddress)) {
       device.status = "Online";

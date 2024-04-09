@@ -7,6 +7,7 @@ let data = {
   clientId: "",
   hwVersion: "",
   swVersion: "",
+  mac: "00:11:22:33:44:55"
 };
 
 const prodSensorData ={
@@ -98,8 +99,10 @@ async function connetToProdMqtt(){
       let hummidity = Math.random() * 100;
       let rotPerSec = Math.random() * 20;
       let direction = Math.random() * 360;
-      let version = "1.22.0_DHT22";
-      const data = `anemometer,device=Emulator temp=${temp},hummidity=${hummidity},rotPerSec=${rotPerSec},direction=${direction},version="${version}"`;
+      const fwVersion = "1.22.0_11";
+      const hwVersion = "DHT11";
+      const fullVersion = fwVersion + "-" + hwVersion;
+      const data = `anemometer,device=Emulator temp=${temp},hummidity=${hummidity},rotPerSec=${rotPerSec},direction=${direction},version=${fwVersion}`;
       //const data = `anemometer,device=Emulator temp=20,hummidity=50,rotPerSec=7,direction=122,version="1.22.0_DHT22"`;
       client.publish("sensors", data);
     }, 1000);
@@ -113,11 +116,11 @@ async function connetToProdMqtt(){
 
 async function connectProdWs(){
   if (prodWsClient == undefined) {
-    prodWsClient = new WebSocket(`${process.env.WS_PROD_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
+    prodWsClient = new WebSocket(`${process.env.WS_PROD_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}&mac=${data.mac}`);
   } else {
     if (prodWsClient.readyState === WebSocket.OPEN)
       console.log("Connection already open");
-    else prodWsClient = new WebSocket(`${process.env.WS_PROD_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
+    else prodWsClient = new WebSocket(`${process.env.WS_PROD_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}&mac=${data.mac}`);
   }
   prodWsClient.on("open", () => {
     console.log("[PRODUCTION WS]: Connected")
@@ -143,11 +146,12 @@ async function connectProdWs(){
 
 async function connectWs() {
   if (wsClient == undefined) {
-    wsClient = new WebSocket(`${process.env.WS_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
+    console.log("Connecting to WS - mac: ", data.mac);
+    wsClient = new WebSocket(`${process.env.WS_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}&mac=${data.mac}`);
   } else {
     if (wsClient.readyState === WebSocket.OPEN)
       console.log("Connection already open");
-    else wsClient = new WebSocket(`${process.env.WS_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}`);
+    else wsClient = new WebSocket(`${process.env.WS_BASE_URL}?clientId=${data.clientId}&hwVersion=${data.hwVersion}&swVersion=${data.swVersion}&mac=${data.mac}`);
   }
   wsClient.on("open", () => console.log("Connected"));
   wsClient.on("close", () => console.log("Disconnected"));
@@ -156,7 +160,7 @@ async function connectWs() {
     switch (message.toString()){
       case "restart" :
         await wsClient.close();
-        connectWs();
+        await connectWs();
     }
   }
   );
@@ -186,6 +190,7 @@ async function ask() {
         clientId: clientId,
         hwVersion: hwVersion,
         swVersion: swVersion,
+        mac: "00:11:22:33:44:55"
       };
       
       await connectWs();
