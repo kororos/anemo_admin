@@ -56,3 +56,31 @@ export default defineComponent({
   }
 })
 </script>
+<style lang="scss" scoped>
+.text-caption {
+  color: $grey-14;
+}
+
+.active-item {
+  background-color: $primary;
+  color: white;
+  font-weight: bold;
+  .text-caption {
+    color: $indigo-3;
+  }
+}
+
+body.body--dark {
+  .active-item {
+    background-color: $blue-grey-10;
+    color: $blue-grey-1;
+    .text-caption {
+      color: $blue-grey-3;
+    }
+  }
+
+  .text-caption {
+    color: $grey-7;
+  }
+}
+</style>

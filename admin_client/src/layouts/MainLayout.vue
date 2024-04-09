@@ -132,25 +132,19 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+
+
 body.body--dark {
-  .active-item {
-    background-color: $blue-10;
-    color: white
-  }
   .test {
-    background-color: $blue-grey-10;
-  
+    //background-color: $blue-grey-10;
+    background-color: $dark-page;
   }
+  .q-header {
+    background-color: $grey-10;
+  }
+
 }
 
-.active-item  {
-  background-color: $indigo-9;
-  color: white;
-  
-}
-.active-item .text-caption {
-  color: $yellow-10;
-}
 .test {
   background-color: $grey-2;
 }
