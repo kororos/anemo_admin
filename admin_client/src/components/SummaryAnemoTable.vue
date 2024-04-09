@@ -8,7 +8,7 @@
     >
       <template v-slot:body-cell-action="props">
         <q-td :props="props">
-          <q-btn @click="performAction(props.row)" label="Update" />
+          <q-btn @click="performAction(props.row)" color="warning" label="Update" />
         </q-td>
       </template>
     </q-table>

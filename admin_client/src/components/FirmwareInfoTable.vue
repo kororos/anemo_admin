@@ -2,7 +2,7 @@
   <q-table  :rows="firmwareInfo" :columns="columns" :visible-columns="visibleColumns" row-key="id">
     <template v-slot:body-cell-action="props">
       <q-td :props="props">
-        <q-btn @click="performAction(props.row)" label="Delete" />
+        <q-btn @click="performAction(props.row)" color="negative" label="Delete" />
       </q-td>
     </template>
   </q-table>

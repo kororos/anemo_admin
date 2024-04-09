@@ -91,8 +91,5 @@ function onRestartFail() {
 
 </script>
 <style scoped>
-.body--dark {
-  background-color: aqua;
-  color: white;
-}
+
 </style>
