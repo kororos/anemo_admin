@@ -1,5 +1,11 @@
 <template>
-  <q-table :rows="rows" :columns="columns" row-key="macAddress"  />
+  <q-table :rows="rows" :columns="columns" row-key="macAddress">
+    <template v-slot:body-cell-status="props">
+      <q-td :props="props">
+        <q-chip :label="props.row.status" outline :color="props.row.status === 'Online' ? 'positive' : 'negative'" text-color="white" />
+      </q-td>
+    </template>
+  </q-table>
 </template>
 
 <script setup>
