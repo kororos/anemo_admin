@@ -83,6 +83,10 @@ const populateDevices = async () => {
   }
 }
 
+store.$subscribe(async () => {
+  await populateDevices();  
+  checkDeviceStatus();
+});
 // For each device, check if the device is online by checking the clients array in the store
 // If the device is in the clients array of the store, set the status to "Online"
 // If the device is not in the clients array of the store, set the status to "Offline"
