@@ -62,11 +62,11 @@ export default defineComponent({
 }
 
 .active-item {
-  background-color: $primary;
-  color: white;
+  background-color: $grey-3;
+  color: $indigo-7;
   font-weight: bold;
   .text-caption {
-    color: $indigo-3;
+    color: $indigo-4;
   }
 }
 
@@ -81,6 +81,9 @@ body.body--dark {
 
   .text-caption {
     color: $grey-7;
+  }
+  .q-item {
+    background-color: $grey-10;
   }
 }
 </style>

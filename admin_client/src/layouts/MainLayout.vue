@@ -18,10 +18,12 @@
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <q-list>
-        <q-item-label header>
+      <q-toolbar class="menu-title">
+        <q-toolbar-title>
           Menu
-        </q-item-label>
+        </q-toolbar-title>
+      </q-toolbar>
+      <q-list>
         <EssentialLink v-for="link in menuLinksList" active-class="active-item" :key="link.title" v-bind="link" />
         <q-separator />
         <q-item-label header>
@@ -132,21 +134,25 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-
-
 body.body--dark {
   .test {
     //background-color: $blue-grey-10;
     background-color: $dark-page;
+  }
+  
+  .menu-title {
+    background-color: $grey-10;
   }
   .q-header {
     background-color: $grey-10;
   }
 
 }
-
+.menu-title {
+  background-color: $indigo-5;
+  color: white;
+}
 .test {
   background-color: $grey-2;
 }
-
 </style>
