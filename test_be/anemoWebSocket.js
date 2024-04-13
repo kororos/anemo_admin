@@ -40,7 +40,7 @@ function startAnemoWebSocketServer(server) {
     ws.on("message", (message) => {
       const messageString = message.toString();
       const messageObj = JSON.parse(messageString);
-      console.log(`Received message: ${message.toString()} and uuid: ${uuid}`);
+      //console.log(`Received message: ${message.toString()} and uuid: ${uuid}`);
       if(messageObj.type === "measurements"){
         sendAdminCommandToAll({
           command: "measurements",

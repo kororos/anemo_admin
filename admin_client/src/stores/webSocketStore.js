@@ -57,13 +57,13 @@ export const useWebSocketStore = defineStore("webSocket", () => {
       return;
     }
 
-    console.log(`Received message: ${JSON.stringify(message)}`);
+    //console.log(`Received message: ${JSON.stringify(message)}`);
     if (message.command === "updateClients") {
       clients.value = message.clients;
     } else if (message.command === "getClientsMap") {
       clients.value = message.clientsArray;
     } else if (message.command === "measurements") {
-      console.log("Received measurements: ", message.data);
+      //console.log("Received measurements: ", message.data);
       let client = clients.value.find(
         (client) => client.mac === message.mac
       );
