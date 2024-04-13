@@ -1,4 +1,4 @@
-import {WebSocketServer} from "ws";
+import { WebSocketServer } from "ws";
 import url from "url";
 import { v4 as uuidv4 } from "uuid";
 import db from "./db/models/index.js";
@@ -9,7 +9,7 @@ const clients = new Map();
 
 function startAnemoWebSocketServer(server) {
   let count = 0;
-  const wss = new WebSocketServer({ noServer: true, path: "/ws/anemometer"});
+  const wss = new WebSocketServer({ noServer: true, path: "/ws/anemometer" });
   console.log("WebSocket server for anemometers is running on port 3000");
   wss.on("connection", async (ws, req) => {
     const parameters = new url.URL(req.url, `http://${req.headers.host}`)
@@ -19,11 +19,16 @@ function startAnemoWebSocketServer(server) {
     const swVersion = parameters.get("swVersion");
     const mac = parameters.get("mac");
     const uuid = uuidv4();
-    clients.set(mac, { clientId: clientId, hwVersion: hwVersion, swVersion:swVersion, mac:mac, uuid: uuid, ws: ws });
+    if (clients.has(mac) &&
+      clients.get(mac).ws) {
+      clients.get(mac).ws.close();
+      console.log(`Client with mac: ${mac} was already connected with UUID: ${clients.get(mac).uuid} and was disconnected`);
+    }
+    clients.set(mac, { clientId: clientId, hwVersion: hwVersion, swVersion: swVersion, mac: mac, uuid: uuid, ws: ws });
     console.log(
       `Client with ClientId: ${clientId}, hwVersion: ${hwVersion} and uuid: ${uuid} CONNECTED`
     );
-    
+
     await db.Device.upsert({
       name: clientId,
       hwVersion: hwVersion,
@@ -41,14 +46,14 @@ function startAnemoWebSocketServer(server) {
       const messageString = message.toString();
       const messageObj = JSON.parse(messageString);
       console.log(`Received message: ${message.toString()} and uuid: ${uuid}`);
-      if(messageObj.type === "measurements"){
+      if (messageObj.type === "measurements") {
         sendAdminCommandToAll({
           command: "measurements",
           mac: messageObj.mac,
           clientId: messageObj.clientId,
           data: messageObj.data
         });
-      } else{
+      } else {
         console.info(`Received message of unknown type: ${message.toString()} and uuid: ${uuid}`);
       }
       // Handle the received message here
@@ -81,19 +86,19 @@ function startAnemoWebSocketServer(server) {
   //setInterval(() => sendMessage(), 1000);
   return wss;
 }
-function sendCommand(command){
+function sendCommand(command) {
   console.log(JSON.stringify(command));
   const client = clients.get(command.mac);
   console.log(`Client is: ${command.uuid}`);
   client.ws.send(command.command);
 }
 
-function getClientsMap(){
+function getClientsMap() {
   console.log("Clients are: ", clients.keys());
   return clients;
 }
 
-function getClientsArray(){
+function getClientsArray() {
   const readyStateMap = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
   const clientsArray = new Array();
   clients.forEach((client, key) => {
