@@ -38,7 +38,19 @@ function startAnemoWebSocketServer(server) {
     });
 
     ws.on("message", (message) => {
+      const messageString = message.toString();
+      const messageObj = JSON.parse(messageString);
       console.log(`Received message: ${message.toString()} and uuid: ${uuid}`);
+      if(messageObj.type === "measurements"){
+        sendAdminCommandToAll({
+          command: "measurements",
+          mac: messageObj.mac,
+          clientId: messageObj.clientId,
+          data: messageObj.data
+        });
+      } else{
+        console.info(`Received message of unknown type: ${message.toString()} and uuid: ${uuid}`);
+      }
       // Handle the received message here
     });
 
