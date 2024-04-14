@@ -5,6 +5,7 @@
       :rows="rows"
       :columns="columns"
       row-key="clientId"
+      @row-click="onRowClicked"
     >
       <template v-slot:body-cell-action="props">
         <q-td :props="props">
@@ -21,7 +22,7 @@ import { useWebSocketStore } from "src/stores/webSocketStore";
 import { api } from '../boot/axios.js';
 
 const store = useWebSocketStore();
-const emit = defineEmits(['restartSuccess', 'restartFail']);
+const emit = defineEmits(['restartSuccess', 'restartFail', 'rowClicked']);
 
 const columns = [
   {
@@ -70,6 +71,11 @@ function performAction(row) {
   // Perform your specific action here
   console.log(`Performing action on: ${row.uuid}`);
   restartClient(row);
+}
+
+function onRowClicked(evt, row, index) {
+  console.log(`Row clicked: ${row.uuid}`);
+  emit('rowClicked', row);
 }
 
 function restartClient(row) {

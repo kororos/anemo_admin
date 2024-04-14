@@ -4,7 +4,8 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
+      { path: '', component: () => import('pages/IndexPage.vue') },
+      { name: 'live', path: 'live/:uuid', component: () => import('pages/LivePage.vue'), props: true }
     ],
   },
   {
@@ -38,6 +39,13 @@ const routes = [
       { path: '', component: () => import('pages/LoginPage.vue') }
     ],
   },
+  // {
+  //   path: '/live/:uuid',
+  //   component: () => import('layouts/MainLayout.vue'),
+  //   children: [
+  //     { name: 'live', path: '', component: () => import('pages/LivePage.vue'), props: true }
+  //   ],
+  // },
   // Always leave this as last one,
   // but you can also remove it
   {

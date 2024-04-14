@@ -1,7 +1,7 @@
 <template>
   <div class="flex row justify-center">
     <q-page class="column justify-center ">
-      <summary-anemo-table class="q-ma-md" @restart-success="onRestartSuccess" @restart-fail="onRestartFail">
+      <summary-anemo-table class="q-ma-md" @restart-success="onRestartSuccess" @restart-fail="onRestartFail" @row-clicked="onRowClicked">
       </summary-anemo-table>
       <div class="row  justify-between q-ma-md">
         <firmware-info-table ref="firmwareInfoTable" class="q-mr-md col" style="min-width: 500px;"
@@ -27,12 +27,13 @@ import SummaryAnemoTable from '../components/SummaryAnemoTable.vue'
 import FirmwareInfoTable from '../components/FirmwareInfoTable.vue'
 import FirmwareUpload from 'src/components/FirmwareUpload.vue';
 import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 
 const $q = useQuasar();
 const progressColor = "primary"
 const progress = ref(0);
 const firmwareInfoTable = ref(null);
-
+const router = useRouter();
 
 function updateProgress(value) {
   progress.value = value / 100;
@@ -87,6 +88,11 @@ function onRestartFail() {
     type: 'negative',
     position: 'top'
   })
+}
+
+function onRowClicked(row){
+  console.log(row);
+  router.push({name: `live`, params: {uuid: row.uuid}});
 }
 
 </script>

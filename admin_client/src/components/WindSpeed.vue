@@ -1,0 +1,52 @@
+<template>
+    <div>
+        <VuePlotly :data="chartData.data" :layout="chartData.layout" :config="chartData.config"></VuePlotly>
+    </div>
+</template>
+
+<script setup>
+import { computed } from 'vue';
+import { VuePlotly } from 'vue3-plotly';
+const props = defineProps({
+    speed: Number
+});
+
+const chartData = computed(() => {
+    return {
+        data: [
+            {
+                value: props.speed,
+                type: 'indicator',
+                gauge: {
+                    axis: {
+                        range: [0, 30],
+                        visible: false,
+                    },
+                },
+                domain: { row: 0, column: 0 },
+                delta: { reference: 20 },
+                mode: "gauge+number+delta",
+            }
+        ],
+        layout: {
+             title: 'Wind Speed',
+             transition: { duration: 1500 },
+        //     showlegend: false,
+        //     xaxis: {
+        //         title: 'Wind Speed'
+        //     },
+        //     // yaxis: {
+        //     //     title: 'Speed (m/s)',
+        //     //     range: [0, 30]
+        //     // }
+        },
+        config: {
+            displayModeBar: true,
+            displaylogo: false,
+            responsive: true
+        }
+    }
+});
+
+
+</script>
