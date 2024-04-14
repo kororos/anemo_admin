@@ -25,7 +25,7 @@ const chartData = computed(() => {
                 },
                 domain: { row: 0, column: 0 },
                 delta: { reference: 20 },
-                mode: "gauge+number+delta",
+                mode: "gauge+number",
             }
         ],
         layout: {
