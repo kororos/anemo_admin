@@ -1,9 +1,7 @@
 <template>
     <div>
-        <q-card>
-        <svg width="200" height="100">
+        <svg :class="props.id" >
         </svg>
-        </q-card>
     </div>
 </template>
 <script setup>
@@ -11,47 +9,53 @@ import { ref, computed, onMounted, onBeforeUpdate } from 'vue';
 import * as d3 from 'd3';
 
 const props = defineProps({
-    speed: Number,
-    speedMax: Number
+    value: Number,
+    valueMax: Number,
+    id: String,
+    innerRadius: Number,
+    outerRadius: Number,
 });
-const speedRound = computed(() => {
-    return Math.round(props.speed);
+const valueRound = computed(() => {
+    return Math.round(props.value);
 });
 
 // Define the arc generator with a fixed inner radius, 
 // outer radius, and start angle
 const arcGenerator = d3.arc()
-    .innerRadius(60)
-    .outerRadius(100)
+    .innerRadius(props.innerRadius ? props.innerRadius : 60)
+    .outerRadius(props.outerRadius ? props.outerRadius : 100)
     .startAngle(-Math.PI / 2);
 
 // When the component is mounted, create an SVG group 
 // for the arc and append a path element to it
 onMounted(() => {
-    // If 'speedRound.value' is truthy, use it as the data; otherwise, use 0 as the data
-    const myData = speedRound.value ? [speedRound.value] : [0];
-    console.log('props.speedMax', props.speedMax);
+    // If 'valueRound.value' is truthy, use it as the data; otherwise, use 0 as the data
+    const myData = valueRound.value ? [valueRound.value] : [0];
+    
     // Select the SVG element, append a 'g' element to it, add the 'arc' class to the 'g' element,
     // and translate the 'g' element to the center of the SVG
-    const svg = d3.select('svg')
-        .attr('viewBox', '0 0 200 100')
+    const svg = d3.select(`.${props.id}`)
+        .attr('width', "100%")
+        .attr('height', "100%")
+        .attr('viewBox', '0 0 200 110')
+        .attr('preserveAspectRatio', 'xMidYMid meet')
         .append('g')
         .classed('arc', true)
         .attr('transform', 'translate(100, 100)');
 
     const myArc = svg.append('path')
         .classed('arcPath', true)
-        .datum({ endAngle: ((myData / props.speedMax) * Math.PI) - Math.PI / 2 })
-        .style('fill', colorScale(speedRound.value))
-        .attr('stroke', colorScale(speedRound.value))
+        .datum({ endAngle: ((myData / props.valueMax) * Math.PI) - Math.PI / 2 })
+        .style('fill', colorScale(valueRound.value))
+        .attr('stroke', colorScale(valueRound.value))
         .attr('d', arcGenerator);
 });
 
 const colorScale = d3.scaleLinear()
-    .domain([0, props.speedMax/2, props.speedMax])
+    .domain([0, props.valueMax / 2, props.valueMax])
     .range(['green', 'yellow', 'red']);
 
-// This method is called before the component updates, i.e., when the 'speed' prop changes
+// This method is called before the component updates, i.e., when the 'value' prop changes
 onBeforeUpdate(() => {
     // This function generates a transition interpolator for the end angle of the arc
     function arcTween(newAngle) {
@@ -68,24 +72,24 @@ onBeforeUpdate(() => {
     };
 
     // Select the path element of the arc
-    const arcPath = d3.select('.arcPath');
+    const arcPath = d3.select(`.${props.id} .arcPath`);
     // Start a transition on the path element
     arcPath.transition()
         // Set the duration of the transition to 1000 milliseconds
         .duration(1100)
         // Use the 'arcTween' function to update the 'd' attribute of the path element during the transition
-        // The new end angle is calculated based on 'speedRound.value'
-        .attrTween('d', arcTween(((speedRound.value / props.speedMax) * Math.PI) - Math.PI / 2))
+        // The new end angle is calculated based on 'valueRound.value'
+        .attrTween('d', arcTween(((valueRound.value / props.valueMax) * Math.PI) - Math.PI / 2))
         .ease(d3.easeLinear)
-        // Update the fill color of the arc based on 'speedRound.value'
-        .style('fill', colorScale(speedRound.value))
-        // Update the stroke color of the arc based on 'speedRound.value'
-        .style('stroke', colorScale(speedRound.value));
+        // Update the fill color of the arc based on 'valueRound.value'
+        .style('fill', colorScale(valueRound.value))
+        // Update the stroke color of the arc based on 'valueRound.value'
+        .style('stroke', colorScale(valueRound.value));
 
     // Select all 'text' elements inside the 'g' element with the 'arc' class
-    d3.select('.arc')
+    d3.select(`.${props.id} .arc`)
         .selectAll('text')
-        .data([speedRound.value])
+        .data([valueRound.value])
         .join('text')
         .attr('text-anchor', 'middle')
         .style('font-size', '30px')
@@ -94,3 +98,10 @@ onBeforeUpdate(() => {
 });
 
 </script>
+<style scoped>
+svg {
+    margin: auto;
+    display: block;
+    
+}
+</style>
