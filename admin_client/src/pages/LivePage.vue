@@ -2,7 +2,7 @@
     <q-page padding>
         <!-- content -->
         <WindSpeedD3 :speed="speed" />
-        <WindSpeedGauge :speed="speed" />
+        <WindSpeedGauge :speed="speed" speedMax="40" />
         <TempGauge :temperature="temperature" />
         <HumidityGauge :humidity="humidity" />
     </q-page>

@@ -1,7 +1,9 @@
 <template>
     <div>
-        <svg height="100px" width="200px">
+        <q-card>
+        <svg width="200" height="100">
         </svg>
+        </q-card>
     </div>
 </template>
 <script setup>
@@ -9,7 +11,8 @@ import { ref, computed, onMounted, onBeforeUpdate } from 'vue';
 import * as d3 from 'd3';
 
 const props = defineProps({
-    speed: Number
+    speed: Number,
+    speedMax: Number
 });
 const speedRound = computed(() => {
     return Math.round(props.speed);
@@ -31,6 +34,7 @@ onMounted(() => {
     // Select the SVG element, append a 'g' element to it, add the 'arc' class to the 'g' element,
     // and translate the 'g' element to the center of the SVG
     const svg = d3.select('svg')
+        .attr('viewBox', '0 0 200 100')
         .append('g')
         .classed('arc', true)
         .attr('transform', 'translate(100, 100)');
@@ -68,10 +72,11 @@ onBeforeUpdate(() => {
     // Start a transition on the path element
     arcPath.transition()
         // Set the duration of the transition to 1000 milliseconds
-        .duration(1000)
+        .duration(1100)
         // Use the 'arcTween' function to update the 'd' attribute of the path element during the transition
         // The new end angle is calculated based on 'speedRound.value'
         .attrTween('d', arcTween(((speedRound.value / 40) * Math.PI) - Math.PI / 2))
+        .ease(d3.easeLinear)
         // Update the fill color of the arc based on 'speedRound.value'
         .style('fill', colorScale(speedRound.value))
         // Update the stroke color of the arc based on 'speedRound.value'
