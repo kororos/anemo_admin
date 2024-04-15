@@ -37,7 +37,8 @@ wsStore.$subscribe((mutation, state) => {
         humidity.value = 0;
     } else {
         //Speed is in m/s, convert to knots
-        speed.value = client.data.sensors.find(item => item.sensor === 'speed').data.data * 1.94 || 0;
+        //speed.value = client.data.sensors.find(item => item.sensor === 'speed').data.data * 1.94 || 0;
+        speed.value = client.data.sensors.find(item => item.sensor === 'speed').data.rotPerSec * 1.46 || 0;
         if (speed.value >= 1) speed.value = speed.value + 1;
         temperature.value = client.data.sensors.find(item => item.sensor === 'temperature').data || 0;
         humidity.value = client.data.sensors.find(item => item.sensor === 'humidity').data || 0;
