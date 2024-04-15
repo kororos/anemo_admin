@@ -48,7 +48,7 @@ onMounted(() => {
 });
 
 const colorScale = d3.scaleLinear()
-    .domain([0, 20, 40])
+    .domain([0, props.speedMax/2, props.speedMax])
     .range(['green', 'yellow', 'red']);
 
 // This method is called before the component updates, i.e., when the 'speed' prop changes
