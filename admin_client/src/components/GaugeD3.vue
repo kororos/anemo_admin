@@ -37,11 +37,11 @@ onMounted(() => {
     const svg = d3.select(`.${props.id}`)
         .attr('width', "100%")
         .attr('height', "100%")
-        .attr('viewBox', '0 0 200 110')
+        .attr('viewBox', '0 00 220 120')
         .attr('preserveAspectRatio', 'xMidYMid meet')
         .append('g')
         .classed('arc', true)
-        .attr('transform', 'translate(100, 100)');
+        .attr('transform', 'translate(110, 110)');
 
     const myArc = svg.append('path')
         .classed('arcPath', true)
