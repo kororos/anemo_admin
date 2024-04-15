@@ -19,7 +19,7 @@
             </q-card>
             <q-card class="col-xs-12 col-sm q-mb-md q-mt-md">
                 <q-card-section>
-                    <div class="text-center text-h6">Wind Speed</div>
+                    <div class="text-center text-h6">Humidity</div>
                 </q-card-section>
                 <GaugeD3 :value="humidity" :valueMax="100" id="humidity" />
             </q-card>
