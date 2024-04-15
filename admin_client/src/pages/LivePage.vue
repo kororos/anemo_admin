@@ -1,8 +1,8 @@
 <template>
     <q-page padding>
         <!-- content -->
-        <WindSpeedD3 :speed="speed" />
-        <WindSpeedGauge :speed="speed" speedMax="40" />
+        <WindSpeedD3 :speed="speed" :speedMax="20"/>
+        <WindSpeedGauge :speed="speed"/>
         <TempGauge :temperature="temperature" />
         <HumidityGauge :humidity="humidity" />
     </q-page>

@@ -30,7 +30,7 @@ const arcGenerator = d3.arc()
 onMounted(() => {
     // If 'speedRound.value' is truthy, use it as the data; otherwise, use 0 as the data
     const myData = speedRound.value ? [speedRound.value] : [0];
-
+    console.log('props.speedMax', props.speedMax);
     // Select the SVG element, append a 'g' element to it, add the 'arc' class to the 'g' element,
     // and translate the 'g' element to the center of the SVG
     const svg = d3.select('svg')
@@ -41,7 +41,7 @@ onMounted(() => {
 
     const myArc = svg.append('path')
         .classed('arcPath', true)
-        .datum({ endAngle: ((myData / 40) * Math.PI) - Math.PI / 2 })
+        .datum({ endAngle: ((myData / props.speedMax) * Math.PI) - Math.PI / 2 })
         .style('fill', colorScale(speedRound.value))
         .attr('stroke', colorScale(speedRound.value))
         .attr('d', arcGenerator);
@@ -75,7 +75,7 @@ onBeforeUpdate(() => {
         .duration(1100)
         // Use the 'arcTween' function to update the 'd' attribute of the path element during the transition
         // The new end angle is calculated based on 'speedRound.value'
-        .attrTween('d', arcTween(((speedRound.value / 40) * Math.PI) - Math.PI / 2))
+        .attrTween('d', arcTween(((speedRound.value / props.speedMax) * Math.PI) - Math.PI / 2))
         .ease(d3.easeLinear)
         // Update the fill color of the arc based on 'speedRound.value'
         .style('fill', colorScale(speedRound.value))
