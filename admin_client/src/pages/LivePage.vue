@@ -23,11 +23,11 @@
                 </q-card-section>
                 <GaugeD3 :value="humidity" :valueMax="100" id="humidity" />
             </q-card>
-            <div class="row">
+            <!-- <div class="row">
                 <WindSpeedGauge :speed="speed" />
                 <TempGauge :temperature="temperature" />
                 <HumidityGauge :humidity="humidity" />
-            </div>
+            </div> -->
         </div>
     </q-page>
 </template>

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <svg :class="props.id" >
+        <svg :class="props.id">
         </svg>
     </div>
 </template>
@@ -14,6 +14,7 @@ const props = defineProps({
     id: String,
     innerRadius: Number,
     outerRadius: Number,
+    dark: Boolean
 });
 const valueRound = computed(() => {
     return Math.round(props.value);
@@ -31,7 +32,7 @@ const arcGenerator = d3.arc()
 onMounted(() => {
     // If 'valueRound.value' is truthy, use it as the data; otherwise, use 0 as the data
     const myData = valueRound.value ? [valueRound.value] : [0];
-    
+
     // Select the SVG element, append a 'g' element to it, add the 'arc' class to the 'g' element,
     // and translate the 'g' element to the center of the SVG
     const svg = d3.select(`.${props.id}`)
@@ -92,16 +93,30 @@ onBeforeUpdate(() => {
         .data([valueRound.value])
         .join('text')
         .attr('text-anchor', 'middle')
-        .style('font-size', '30px')
+        //.style('font-size', '30px')
+        //.classed('gauge-text', true)
         .text(d => d);
 
 });
 
 </script>
-<style scoped>
+<style lang="scss">
 svg {
     margin: auto;
     display: block;
-    
+}
+
+body.body--light {
+    text {
+        font-size: 30px;
+        fill: $green-10;
+    }
+}
+
+body.body--dark {
+    text {
+        font-size: 30px;
+        fill: #d41919;
+    }
 }
 </style>
