@@ -98,7 +98,7 @@ async function connetToProdMqtt() {
       let temp = Math.random() * 40;
       let hummidity = Math.random() * 100;
       let rotPerSec = Math.random() * 20;
-      let direction = Math.random() * 360;
+      let direction = Math.random() * 359;
       const fwVersion = "1.22.0_11";
       const hwVersion = "DHT11";
       const fullVersion = fwVersion + "-" + hwVersion;

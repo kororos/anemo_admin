@@ -2,10 +2,15 @@
     <q-page padding>
         <!-- content -->
         <div class="flex row items-center justify-between">
-
             <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
                 <q-card-section>
-                    <div class="text-center text-h6">Wind Speed</div>
+                    <div class="text-center text-h6 text-no-wrap">Wind Direction</div>
+                </q-card-section>
+            <CompassD3 id="compass" :arrowAngle="direction"/>
+            </q-card>  
+            <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
+                <q-card-section>
+                    <div class="text-center text-h6 text-no-wrap">Wind Speed</div>
                 </q-card-section>
                 <GaugeD3 class="justify-center " :value="speed" 
                     :valueMax="30" :innerRadius="60" :outerRadius="80"
@@ -17,7 +22,7 @@
                 </q-card-section>
                 <GaugeD3 :value="temperature" :valueMax="45" id="temperature" />
             </q-card>
-            <q-card class="col-xs-12 col-sm q-mb-md q-mt-md">
+            <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
                 <q-card-section>
                     <div class="text-center text-h6">Humidity</div>
                 </q-card-section>
@@ -35,16 +40,15 @@
 <script setup>
 import { ref } from 'vue';
 import { useWebSocketStore } from "src/stores/webSocketStore";
-import WindSpeedGauge from 'src/components/WindSpeedGauge.vue';
-import TempGauge from 'src/components/TempGauge.vue';
-import HumidityGauge from 'src/components/HumidityGauge.vue';
 import GaugeD3 from 'src/components/GaugeD3.vue';
+import CompassD3 from 'src/components/CompassD3.vue';
 
 const wsStore = useWebSocketStore();
 
 const speed = ref(0);
 const temperature = ref(0);
 const humidity = ref(0);
+const direction = ref(0);
 const props = defineProps({
     uuid: String
 });
@@ -55,15 +59,18 @@ wsStore.$subscribe((mutation, state) => {
         speed.value = 0;
         temperature.value = 0;
         humidity.value = 0;
+        direction.value = 0;
     } else if (!client.data) {
         speed.value = 0;
         temperature.value = 0;
         humidity.value = 0;
+        direction.value = 0;
     } else {
         //Speed is in m/s, convert to knots
         //speed.value = client.data.sensors.find(item => item.sensor === 'speed').data.data * 1.94 || 0;
         speed.value = client.data.sensors.find(item => item.sensor === 'speed').data.rotPerSec * 1.46 || 0;
         if (speed.value >= 1) speed.value = speed.value + 1;
+        direction.value = client.data.sensors.find(item => item.sensor === 'magneto').data || 0;
         temperature.value = client.data.sensors.find(item => item.sensor === 'temperature').data || 0;
         humidity.value = client.data.sensors.find(item => item.sensor === 'humidity').data || 0;
     }

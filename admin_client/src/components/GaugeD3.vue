@@ -81,7 +81,7 @@ onBeforeUpdate(() => {
         // Use the 'arcTween' function to update the 'd' attribute of the path element during the transition
         // The new end angle is calculated based on 'valueRound.value'
         .attrTween('d', arcTween(((valueRound.value / props.valueMax) * Math.PI) - Math.PI / 2))
-        .ease(d3.easeLinear)
+        .ease(d3.easeCubic)
         // Update the fill color of the arc based on 'valueRound.value'
         .style('fill', colorScale(valueRound.value))
         // Update the stroke color of the arc based on 'valueRound.value'
