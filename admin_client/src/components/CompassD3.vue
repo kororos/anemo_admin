@@ -32,22 +32,51 @@ function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
 }
 
-function getSegments(){
-    const badRegion = 360 - (props.arcEnd - props.arcStart);
-    const badSection = badRegion/6;
-    console.log('badSection: ', badSection);
-    return [props.arcStart, 
-            props.arcEnd, 
-            props.arcEnd+badSection, 
-            props.arcEnd + (2* badSection),
-            props.arcEnd + (3* badSection),
-            props.arcEnd + (4* badSection),
-            props.arcEnd + (5* badSection)
-        ];
+function normalizeAngle(angle) {
+    let normalizedAngle = angle - props.arcStart;
+    if (normalizedAngle < 0) {
+        normalizedAngle += 360;
+    };
+    // provided that props.arcStart = 90 then: 
+    // if angle = 90 then normalizedAngle = 90 - 90 = 0
+    // if angle = 0 then normalizedAngle = 0 - 90 = -90 + 360 = 270
+    // if angle = 90 then normalizedAngle = 90 - 90 = 0
+    return normalizedAngle;
 }
+
+const scales = ({ arcStart, arcEnd  }) => {
+    
+    const arcStartNormalized = normalizeAngle(arcStart);
+    const arcEndNormalized = normalizeAngle(arcEnd);
+    
+    const remainingCircle = 360 - (arcStartNormalized + arcEndNormalized);
+    const segmentLength = remainingCircle/6
+    let domain = [];
+    let range = [];
+
+    domain.push(arcStartNormalized, arcEndNormalized);
+    range.push('green', 'green');
+    domain.push(arcEndNormalized + segmentLength);
+    range.push('orange');
+    domain.push(arcEndNormalized + 2 * segmentLength);
+    range.push('red');
+    domain.push(arcEndNormalized + 3 * segmentLength);
+    range.push('red');
+    domain.push(arcEndNormalized + 4 * segmentLength);
+    range.push('red');
+    domain.push(arcEndNormalized + 5 * segmentLength);
+    range.push('orange');
+
+    return { domain, range };
+
+};
+
+const scaleObject = scales({ arcStart: props.arcStart, arcEnd: props.arcEnd });
+
 const colorScale = d3.scaleLinear()
-    .domain(getSegments())
-    .range(['green', 'green', 'yellow', 'red', 'red', 'red', 'yellow']);
+    .domain(scaleObject.domain)
+    .range(scaleObject.range);
+
 
 onMounted(() => {
     var centerX = 110; // X-coordinate of circle center
@@ -61,19 +90,21 @@ onMounted(() => {
         .attr('preserveAspectRatio', 'xMidYMid meet')
         .append('path')
         .attr('transform', `translate(${centerX}, ${centerY})`)
-        .datum({ startAngle: degreesToRadians(props.arcStart), 
-                 endAngle: degreesToRadians(props.arcEnd) })
+        .datum({
+            startAngle: degreesToRadians(props.arcStart),
+            endAngle: degreesToRadians(props.arcEnd)
+        })
         .style('fill', 'green')
         .attr('d', arcGenerator);
-    
+
     d3.select('svg')
         .append('text')
-        .attr('id','angle-text')
+        .attr('id', 'angle-text')
         .attr('text-anchor', 'middle')
         .text(Math.round(props.arrowAngle) + '°')
         .style('font-size', '15px')
-        .attr('transform', `translate (${centerX},${centerY-radius/2})`);
-    
+        .attr('transform', `translate (${centerX},${centerY - radius / 2})`);
+
     d3.select('svg')
         .append('circle')
         .attr('cx', centerX)
@@ -189,16 +220,15 @@ onMounted(() => {
         .attr('transform', 'translate(120, 70) scale(0.04)');
 
     d3.selectAll('#kite-group path')
-        .style('fill', 'green');
+        .style('fill', colorScale(normalizeAngle(props.arrowAngle)));
 
     d3.selectAll('#kite-group circle')
-        .style('fill', 'green');
+        .style('fill', colorScale(normalizeAngle(props.arrowAngle)));
 });
 
 onBeforeUpdate(() => {
-    const arrowAngle=props.arrowAngle;
-    //console.log('arrowAngle: ', arrowAngle);
-    //console.log('ranges: ', getSegments());
+    const arrowAngle = props.arrowAngle;    
+
     d3.select('svg')
         .select('#rotate_group')
         .transition()
@@ -208,13 +238,13 @@ onBeforeUpdate(() => {
     d3.selectAll('#kite-group path')
         .transition()
         .duration(800)
-        .style('fill', colorScale(arrowAngle));
+        .style('fill', colorScale(normalizeAngle(arrowAngle)));
 
     d3.selectAll('#kite-group circle')
         .transition()
         .duration(800)
-        .style('fill', colorScale(arrowAngle));
-    
+        .style('fill', colorScale(normalizeAngle(arrowAngle)));
+
     d3.select('#angle-text')
         .transition()
         .duration(800)
