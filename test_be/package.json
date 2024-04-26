@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --env-file .env.development index.js",
+    "dev": "NODE_ENV=development node --env-file .env.development index.js",
     "prod": "NODE_ENV=production node --env-file .env.production index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -14,8 +14,11 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
+    "@zip.js/zip.js": "^2.7.43",
     "axios": "^1.2.1",
+    "browser-or-node": "^3.0.0",
     "d3": "^7.9.0",
+    "decompress": "^4.2.1",
     "dotenv": "^16.4.2",
     "pinia": "^2.0.11",
     "quasar": "^2.14.4",
