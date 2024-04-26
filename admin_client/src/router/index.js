@@ -60,6 +60,9 @@ export default route(function (/* { store, ssrContext } */) {
       return {
         path: "/",
       };
+    } else if (to.path === "/signup"){
+      //return { path: "/signup" };
+      console.log("signup");
     } else {
       const publicPages = ["/login"];
       const authRequired = !publicPages.includes(to.path);

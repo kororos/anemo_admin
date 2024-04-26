@@ -4,12 +4,14 @@
             <div class="text-h6">Anemometer Admin Console</div>
         </q-card-section>
         <q-card-section>
-            <q-form @submit="login">
+            <q-form @submit="signup">
                 <q-input v-model="username" label="Username" />
+                <q-input v-model="email" label="Email" />
                 <q-input v-model="password" label="Password" type="password" />
+                <q-input v-model="passwordRep" label="Confirm Password" type="password" />
                 <div class=" flex justify-between">
-                    <q-btn type="submit" label="Login" color="primary" class="q-mt-md" />
-                    <q-btn label="Sign up" color="primary" class="q-mt-md" @click="signUp" />
+                    <q-btn type="submit" label="Sign Up" color="primary" class="q-mt-md" />
+                    <q-btn label="Login" color="primary" class="q-mt-md" @click="login" />
                 </div>
             </q-form>
         </q-card-section>
@@ -43,7 +45,7 @@ function callGoogle() {
     getGoogleUrl(data.value);
 }
 //const from= ref(location.origin + route.fullPathroute.query.returnUrl ||  '/');
-function login() {
+function signup() {
     store.login(username.value, password.value, route.query.returnUrl).then(() => {
         router.push(route.query.returnUrl || '/');
     }).catch(() => {
@@ -51,8 +53,8 @@ function login() {
     })
 }
 
-function signUp() {
-    router.push('/signup');
+function login() {
+    router.push('/login');
 }
 
 </script>
