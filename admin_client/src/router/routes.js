@@ -32,6 +32,14 @@ const routes = [
     ]
   },
   {
+    path: '/signup',
+    component: () => import('layouts/LoginLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/SignupPage.vue') }
+    ]
+  },
+
+  {
     path: '/login_successful',
     //redirect: '/uploadFirmware'
     component: () => import('layouts/LoginLayout.vue'),
