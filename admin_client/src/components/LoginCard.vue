@@ -7,16 +7,13 @@
             <q-form @submit="login">
                 <q-input v-model="username" label="Username" />
                 <q-input v-model="password" label="Password" type="password" />
-                <div class=" flex justify-between">
-                    <q-btn type="submit" label="Login" color="primary" class="q-mt-md" />
-                    <q-btn label="Sign up" color="primary" class="q-mt-md" @click="signUp" />
-                </div>
+                <q-btn type="submit" label="Login" color="primary" class="q-mt-md" />
             </q-form>
         </q-card-section>
         <q-card-section>
             <div>
-                <a :href="getGoogleUrl(data)" class="text-center" target="_blank">
-                    <q-img src="../assets/web_light_rd_ctn.svg" fit="scale-down" /> </a>
+                <a :href="getGoogleUrl(data)"  class="text-center" target="_blank">
+                <q-img src="../assets/web_light_rd_ctn.svg" fit="scale-down" /> </a>
             </div>
         </q-card-section>
     </q-card>
@@ -35,12 +32,12 @@ const store = useAuthStore();
 const username = ref('');
 const password = ref('');
 const data = ref({
-    baseUrl: location.origin,
-    from: route.query.returnUrl || '/'
+  baseUrl: location.origin,
+  from: route.query.returnUrl || '/'
 });
 
 function callGoogle() {
-    getGoogleUrl(data.value);
+  getGoogleUrl(data.value);
 }
 //const from= ref(location.origin + route.fullPathroute.query.returnUrl ||  '/');
 function login() {
@@ -49,10 +46,6 @@ function login() {
     }).catch(() => {
         console.log('Login failed');
     })
-}
-
-function signUp() {
-    router.push('/signup');
 }
 
 </script>
