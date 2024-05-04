@@ -2,6 +2,9 @@
     <q-page padding>
         <!-- content -->
         <div class="flex row items-center justify-between">
+            <q-card class="col-12 q-mr-md q-mb-md q-mt-md">
+                <q-select class="q-pl-sm" v-model="selectedDevice" :options="devices" label="Select Device" />
+            </q-card>
             <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
                 <q-card-section>
                     <div class="text-center text-h6 text-no-wrap">Wind Direction</div>
@@ -31,24 +34,31 @@
     </q-page>
 </template>
 
-<script setup>
-import { ref } from 'vue';
+
+<script setup>import { ref, onMounted } from 'vue';
 import { useWebSocketStore } from "src/stores/webSocketStore";
 import GaugeD3 from 'src/components/GaugeD3.vue';
 import CompassD3 from 'src/components/CompassD3.vue';
 
+// Note that WebSocketStore has been initizaed in the boot/authBoot.js file
 const wsStore = useWebSocketStore();
 
 const speed = ref(0);
 const temperature = ref(0);
 const humidity = ref(0);
 const direction = ref(0);
-const props = defineProps({
-    uuid: String
-});
+const devices = ref([]);
+const selectedDevice = ref(null);
 
 wsStore.$subscribe((mutation, state) => {
-    const client = state.clients.find(client => client.uuid === props.uuid);
+    devices.value = state.clients.map(client => {
+        return {
+            label: client.clientId,
+            value: client.uuid
+        }
+    });
+    
+    const client = state.clients.find(client => client.uuid === (selectedDevice.value ? selectedDevice.value.value : ""));
     if (!client) {
         speed.value = 0;
         temperature.value = 0;

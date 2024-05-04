@@ -11,9 +11,15 @@ export const useWebSocketStore = defineStore("webSocket", () => {
     //socket.value = new WebSocket("ws://localhost:3000/ws/admin?clientId=admin");
     const url = process.env.WS_BASE_URL || "ws://localhost:3000/ws/admin";
     const suffix = "?clientId=admin";
+    if(socket.value) { 
+      if(socket.value.readyState === WebSocket.OPEN) {
+        return;
+      }
+    }
     socket.value = new WebSocket(
       `${url+suffix}`
     );
+    
 
     let keepAliveIntervalId = null;
 

@@ -125,11 +125,6 @@ watch(darkMode, (value) => {
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
-const store = useWebSocketStore();
-onMounted(() => {
-  console.log('MainLayout mounted')
-  store.initializeWebSocket();
-})
 
 </script>
 
