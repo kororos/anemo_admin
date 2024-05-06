@@ -6,7 +6,7 @@
                 <q-card-section>
                     <div class="text-center text-h6 text-no-wrap">Wind Direction</div>
                 </q-card-section>
-                <CompassD3 id="compass" :arrowAngle="direction" :arcStart="180" :arcEnd="275"/>
+                <CompassD3 id="compass" :arrowAngle="direction" :arcStart="180" :arcEnd="270"/>
             </q-card>
             <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
                 <q-card-section>
