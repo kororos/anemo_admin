@@ -6,7 +6,7 @@
                 <q-card-section>
                     <div class="text-center text-h6 text-no-wrap">Wind Direction</div>
                 </q-card-section>
-                <CompassD3 id="compass" :arrowAngle="direction" />
+                <CompassD3 id="compass" :arrowAngle="direction" :arcStart="180" :arcEnd="275"/>
             </q-card>
             <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
                 <q-card-section>
@@ -27,6 +27,12 @@
                 </q-card-section>
                 <GaugeD3 :value="humidity" :valueMax="100" id="humidity" />
             </q-card>
+            <q-card class="col-12 q-mr-md q-mb-md q-mt-md">
+                <q-card-section>
+                    <div class="text-center text-h6">Measurements</div>
+                </q-card-section>
+                <MeasurementsD3 id="measurements" />
+            </q-card>
         </div>
     </q-page>
 </template>
@@ -36,6 +42,7 @@ import { ref } from 'vue';
 import { useWebSocketStore } from "src/stores/webSocketStore";
 import GaugeD3 from 'src/components/GaugeD3.vue';
 import CompassD3 from 'src/components/CompassD3.vue';
+import MeasurementsD3 from 'src/components/MeasurementsD3.vue';
 
 const wsStore = useWebSocketStore();
 

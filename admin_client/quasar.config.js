@@ -66,7 +66,11 @@ require('dotenv').config();
         WS_BASE_URL: process.env.WS_BASE_URL,
         API_BASE_URL: process.env.API_BASE_URL,
         GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-        GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI
+        GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+        INFLUX_URL: process.env.INFLUX_URL,
+        INFLUX_TOKEN: process.env.INFLUX_TOKEN,
+        INFLUX_ORG: process.env.INFLUX_ORG,
+        INFLUX_BUCKET: process.env.INFLUX_BUCKET
         //require('dotenv').config().parsed,
       },
 

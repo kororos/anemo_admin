@@ -13,6 +13,8 @@
     "build": "quasar build"
   },
   "dependencies": {
+    "@influxdata/influxdb-client-apis": "^1.33.2",
+    "@influxdata/influxdb-client-browser": "^1.33.2",
     "@quasar/extras": "^1.16.4",
     "@zip.js/zip.js": "^2.7.43",
     "axios": "^1.2.1",
