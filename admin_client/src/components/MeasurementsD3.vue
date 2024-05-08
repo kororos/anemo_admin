@@ -77,10 +77,9 @@ async function iterateRows() {
 
 
 function updateChart() {
-
     const xAxis = d3.scaleUtc(d3.extent(measurements.value, d => d._time), [0, 340]);
-    const yAxis = d3.scaleLinear([0, d3.max(tempMeasurements.value, d => d._value)], [70, 0]);
-    const y2Axis = d3.scaleLinear([0, d3.max(speedMeasurements.value, d => d._value)], [70, 0]);
+    const yAxis = d3.scaleLinear([0, d3.max(tempMeasurements.value, d => d._value)], [100, 0]);
+    const y2Axis = d3.scaleLinear([0, d3.max(speedMeasurements.value, d => d._value)], [100, 0]);
     const line = d3.line()
         .x(d => xAxis(d._time))
         .y(d => yAxis(d._value));
@@ -92,17 +91,19 @@ function updateChart() {
     const area = d3.area()
         .x(d => xAxis(d._time))
         .y0(yAxis(0))
-        .y1(d => yAxis(d._value));
+        .y1(d => yAxis(d._value))
+        .curve(d3.curveBasis);
 
     const speedArea = d3.area()
         .x(d => xAxis(d._time))
         .y0(y2Axis(0))
-        .y1(d => y2Axis(d._value));
+        .y1(d => y2Axis(d._value))
+        .curve(d3.curveBasis);
 
     const svg = d3.select(`.${props.id}`)
         .attr('width', "100%")
         .attr('height', "100%")
-        .attr('viewBox', '0 0 400 100')
+        .attr('viewBox', '0 0 400 130')
         .attr('preserveAspectRatio', 'xMidYMid meet');
 
     const defs = svg.append('defs');
@@ -184,7 +185,7 @@ function updateChart() {
         .style('font-size', '6px');
 
     svg.append('g')
-        .attr('transform', `translate(30, 70)`)
+        .attr('transform', `translate(30, 100)`)
         .call(d3.axisBottom(xAxis).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
         .selectAll('text')
         .style('font-size', '6px')
