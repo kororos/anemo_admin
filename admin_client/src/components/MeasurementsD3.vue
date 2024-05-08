@@ -29,9 +29,18 @@ const measurements = ref([]);
 const tempMeasurements = computed(() => {
     return measurements.value.filter(m => m._field === 'temp');
 });
-// const speedMeasurements = computed(() => {
-//   return measurements.value.filter(m => m._field === 'speed');
-// });
+const rotsPerSecMeasurements = computed(() => {
+    return measurements.value.filter(m => m._field === 'rotPerSec');
+});
+
+const speedMeasurements = computed(() => {
+    return rotsPerSecMeasurements.value.map(m => {
+        return {
+            _time: m._time,
+            _value: m._value * 1.46
+        }
+    });
+});
 const humidityMeasurements = computed(() => {
     return measurements.value.filter(m => m._field === 'hummidity');
 });
@@ -60,25 +69,35 @@ async function iterateRows() {
         //console.log(`${o._time} ${o._measurement} in '${o.device}' ${o._field}=${o._value}`);
         measurements.value.push(o);
     }
-    console.log(tempMeasurements.value);
-    console.log(humidityMeasurements.value);
-    console.log(directionMeasurements.value);
+    // console.log(tempMeasurements.value);
+    // console.log(humidityMeasurements.value);
+    // console.log(directionMeasurements.value);
     //console.log(measurements.value);
 }
 
 
 function updateChart() {
 
-    const xAxis = d3.scaleUtc(d3.extent(measurements.value, d => d._time), [0, 360]);
+    const xAxis = d3.scaleUtc(d3.extent(measurements.value, d => d._time), [0, 340]);
     const yAxis = d3.scaleLinear([0, d3.max(tempMeasurements.value, d => d._value)], [70, 0]);
+    const y2Axis = d3.scaleLinear([0, d3.max(speedMeasurements.value, d => d._value)], [70, 0]);
     const line = d3.line()
         .x(d => xAxis(d._time))
         .y(d => yAxis(d._value));
+
+    const speedLine = d3.line()
+        .x(d => xAxis(d._time))
+        .y(d => y2Axis(d._value));
 
     const area = d3.area()
         .x(d => xAxis(d._time))
         .y0(yAxis(0))
         .y1(d => yAxis(d._value));
+
+    const speedArea = d3.area()
+        .x(d => xAxis(d._time))
+        .y0(y2Axis(0))
+        .y1(d => y2Axis(d._value));
 
     const svg = d3.select(`.${props.id}`)
         .attr('width', "100%")
@@ -99,7 +118,25 @@ function updateChart() {
         .attr('stop-color', 'blue')
         .attr('stop-opacity', 0.1);
 
+    const speedGradient = defs.append('linearGradient')
+        .attr('id', 'speed-gradient')
+        .attr('gradientTransform', 'rotate(90)');
+    speedGradient.append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', 'green')
+        .attr('stop-opacity', 0.7);
+    speedGradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', 'green')
+        .attr('stop-opacity', 0.1);
 
+    svg.append('path')
+        .attr('fill', 'url(#speed-gradient)')
+        //.attr('fill-opacity', 0.3)
+        .attr('stroke', 'green')
+        .attr('stroke-width', 1)
+        .attr('d', speedArea(speedMeasurements.value))
+        .attr('transform', `translate(30, 0)`);
 
     svg.append('path')
         .attr('fill', 'url(#temperature-gradient)')
@@ -111,9 +148,9 @@ function updateChart() {
         .on('mouseover', function (event, d) {
             d3.select("div.tip")
                 .style('opacity', 1)
-                .style('left', `${d3.pointer(event)[0]}px`)
-                .style('top', `${d3.pointer(event)[1]}px`)
-                .text(`Temperature: ${d._value}°C`);
+                .style('left', `${d3.pointer(event)[0]+60}px`)
+                .style('top', `${d3.pointer(event)[1]}px`);
+          //      .text(`Temperature: ${d._value}°C`);
         })
         .on('mouseout', function (event, d) {
             d3.select("div.tip")
@@ -122,18 +159,27 @@ function updateChart() {
         .on('mousemove', function (event, d) {
             const mouseX = d3.pointer(event)[0];
             const mouseTime = xAxis.invert(mouseX);
-            const i = d3.bisectLeft(measurements.value.map(d => d._time), mouseTime);
-            const dataPoint = measurements.value[i];
-
+            const i = d3.bisectLeft(tempMeasurements.value.map(d => d._time), mouseTime);
+            const tempDataPoint = tempMeasurements.value[i];
+            const j = d3.bisectLeft(speedMeasurements.value.map(d => d._time), mouseTime);
+            const speedDataPoint = speedMeasurements.value[j];
             d3.select("div.tip")
                 .style('opacity', 1)
                 .style('left', `${event.pageX}px`)
                 .style('top', `${event.pageY}px`)
-                .text(`Temperature: ${Math.round(dataPoint._value* 10, )/10}°C`);
+                .html(`Temperature: ${Math.round(tempDataPoint._value* 10, )/10}°C<br/>\
+                Speed: ${Math.round(speedDataPoint._value*10)/10}kts`);
         });
+
     svg.append('g')
         .attr('transform', `translate(30, 0)`)
         .call(d3.axisLeft(yAxis).ticks(10).tickFormat(d => `${d}°C`))
+        .selectAll('text')
+        .style('font-size', '6px');
+
+    svg.append('g')
+        .attr('transform', `translate(370,0)`)
+        .call(d3.axisRight(y2Axis).ticks(5).tickFormat(d => `${d}kts`))
         .selectAll('text')
         .style('font-size', '6px');
 
