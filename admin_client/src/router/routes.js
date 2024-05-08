@@ -5,7 +5,8 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { name: 'live', path: 'live/:uuid', component: () => import('pages/LivePage.vue'), props: true }
+      { name: 'live', path: 'live', component: () => import('pages/LivePage.vue'), 
+        props: route=> ({uuid: route.query.uuid, device: route.query.device}) }
     ],
   },
   {

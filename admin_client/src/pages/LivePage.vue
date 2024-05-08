@@ -29,9 +29,9 @@
             </q-card>
             <q-card class="col-12 q-mr-md q-mb-md q-mt-md">
                 <q-card-section>
-                    <div class="text-center text-h6" :device="device" id="measurements">Measurements</div>
+                    <div class="text-center text-h6" id="measurements">Measurements</div>
                 </q-card-section>
-                <MeasurementsD3 id="measurements" />
+                <MeasurementsD3 id="measurements" :device="props.device"  />
             </q-card>
         </div>
     </q-page>
