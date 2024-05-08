@@ -92,7 +92,7 @@ function onRestartFail() {
 
 function onRowClicked(row){
   console.log(row);
-  router.push({name: `live`, params: {uuid: row.uuid, device: row.device}});
+  router.push({name: `live`, params: {uuid: row.uuid, device: row.clientId}});
 }
 
 </script>
