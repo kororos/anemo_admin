@@ -20,7 +20,7 @@ const flexQuery = `from(bucket: "${process.env.INFLUX_BUCKET}")
   |> filter(fn: (r) => r._field == "temp" or r._field == "speed" \
                                     or r._field == "hummidity" or r._field == "direction" \
                                     or r._field == "rotPerSec")
-  |> filter(fn: (r) => r.device == "${props.device}")
+  |> filter(fn: (r) => r.device == "${props.device !== "test" ? props.device : "Aegina"}")
   |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)
   |> yield(name: "mean")`;
 console.log(flexQuery);
@@ -69,7 +69,7 @@ async function iterateRows() {
 
 function updateChart() {
 
-    const xAxis = d3.scaleUtc(d3.extent(measurements.value, d => d._time), [0, 380]);
+    const xAxis = d3.scaleUtc(d3.extent(measurements.value, d => d._time), [0, 360]);
     const yAxis = d3.scaleLinear([0, d3.max(tempMeasurements.value, d => d._value)], [70, 0]);
     const line = d3.line()
         .x(d => xAxis(d._time))
@@ -107,18 +107,17 @@ function updateChart() {
         .attr('stroke', 'steelblue')
         .attr('stroke-width', 1)
         .attr('d', area(tempMeasurements.value))
-        .attr('transform', `translate(20, 0)`)
+        .attr('transform', `translate(30, 0)`)
         .on('mouseover', function (event, d) {
             d3.select("div.tip")
                 .style('opacity', 1)
-                //.attr('transform', `translate(${d3.pointer(event)[0]}, ${d3.pointer(event)[1]})`);
                 .style('left', `${d3.pointer(event)[0]}px`)
                 .style('top', `${d3.pointer(event)[1]}px`)
                 .text(`Temperature: ${d._value}°C`);
         })
         .on('mouseout', function (event, d) {
             d3.select("div.tip")
-                .style('opacity', 0.1);
+                .style('opacity', 0);
         })
         .on('mousemove', function (event, d) {
             const mouseX = d3.pointer(event)[0];
@@ -127,24 +126,23 @@ function updateChart() {
             const dataPoint = measurements.value[i];
 
             d3.select("div.tip")
-                //.attr('transform', `translate(${event.pageX}, ${event.pageY})`)
                 .style('opacity', 1)
                 .style('left', `${event.pageX}px`)
                 .style('top', `${event.pageY}px`)
                 .text(`Temperature: ${Math.round(dataPoint._value* 10, )/10}°C`);
         });
     svg.append('g')
-        .attr('transform', `translate(20, 0)`)
-        .call(d3.axisLeft(yAxis).ticks(10).tickFormat(d3.format('d')))
+        .attr('transform', `translate(30, 0)`)
+        .call(d3.axisLeft(yAxis).ticks(10).tickFormat(d => `${d}°C`))
         .selectAll('text')
         .style('font-size', '6px');
 
     svg.append('g')
-        .attr('transform', `translate(20, 70)`)
+        .attr('transform', `translate(30, 70)`)
         .call(d3.axisBottom(xAxis).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
         .selectAll('text')
         .style('font-size', '6px')
-        .attr('transform', 'translate(-10, 20) rotate(-90)');
+        .attr('transform', 'translate(-11, 15) rotate(-90)');
 
     //Create a tooltip div
     d3.select('body').append('div')
@@ -156,8 +154,6 @@ function updateChart() {
         .style('padding', '5px')
         .style('border-radius', '5px')
         .style('font-size', '10px')
-        .style('pointer-events', 'none')
-        //set text to "test"
-        .text('test');
+        .style('pointer-events', 'none');
 }
 </script>
