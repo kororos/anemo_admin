@@ -58,21 +58,10 @@ async function iterateRows() {
     const rows = [];
     measurements.value = [];
     for await (const { values, tableMeta } of queryApi.iterateRows(flexQuery)) {
-        // const table = tableMeta as FluxTableMetaData;
-        // for (let i = 0; i < values.length; i++) {
-        //   const value = values[i];
-        //   rows.push(value);
-        // }
         const o = tableMeta.toObject(values);
         o._time = new Date(o._time);
-        //console.log(new Date(o._time).toUTCString());
-        //console.log(`${o._time} ${o._measurement} in '${o.device}' ${o._field}=${o._value}`);
         measurements.value.push(o);
     }
-    // console.log(tempMeasurements.value);
-    // console.log(humidityMeasurements.value);
-    // console.log(directionMeasurements.value);
-    //console.log(measurements.value);
 }
 
 
@@ -135,7 +124,7 @@ function updateChart() {
         .attr('fill', 'url(#speed-gradient)')
         //.attr('fill-opacity', 0.3)
         .attr('stroke', 'green')
-        .attr('stroke-width', 1)
+        .attr('stroke-width', 0.5)
         .attr('d', speedArea(speedMeasurements.value))
         .attr('transform', `translate(30, 0)`);
 
@@ -143,7 +132,7 @@ function updateChart() {
         .attr('fill', 'url(#temperature-gradient)')
         //.attr('fill-opacity', 0.3)
         .attr('stroke', 'steelblue')
-        .attr('stroke-width', 1)
+        .attr('stroke-width', 0.5)
         .attr('d', area(tempMeasurements.value))
         .attr('transform', `translate(30, 0)`)
         .on('mouseover', function (event, d) {
@@ -174,22 +163,30 @@ function updateChart() {
 
     svg.append('g')
         .attr('transform', `translate(30, 0)`)
-        .call(d3.axisLeft(yAxis).ticks(10).tickFormat(d => `${d}°C`))
+        .call(d3.axisLeft(yAxis).tickSize(3).ticks(10).tickFormat(d => `${d}°C`))
+        .call(g => g.select('.domain').style('stroke-width', 0.5))
+        .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))   
         .selectAll('text')
         .style('font-size', '6px');
 
     svg.append('g')
         .attr('transform', `translate(370,0)`)
-        .call(d3.axisRight(y2Axis).ticks(5).tickFormat(d => `${d}kts`))
+        .call(d3.axisRight(y2Axis).tickSize(3).ticks(5).tickFormat(d => `${d}kts`))
+        .call(g => g.select('.domain').style('stroke-width', 0.5))
+        .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
         .selectAll('text')
         .style('font-size', '6px');
 
     svg.append('g')
         .attr('transform', `translate(30, 100)`)
-        .call(d3.axisBottom(xAxis).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
+        .call(d3.axisBottom(xAxis).tickSize(2).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
+        .call(g => g.select('.domain').style('stroke-width', 0.5))
+        .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
+        .call(g => g.selectAll('.tick text').style('font-size', '6px'))
+        .call(g => g.selectAll('.tick:last-of-type line').style('stroke', 'black').style('stroke-width', 1))
         .selectAll('text')
-        .style('font-size', '6px')
-        .attr('transform', 'translate(-11, 15) rotate(-90)');
+        //.style('font-size', '6px')
+        .attr('transform', 'translate(-7, 15) rotate(-90)');
 
     //Create a tooltip div
     d3.select('body').append('div')
