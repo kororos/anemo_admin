@@ -21,7 +21,7 @@
                 </q-card-section>
                 <GaugeD3 :value="temperature" :valueMax="45" id="temperature" />
             </q-card>
-            <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
+            <q-card class="col-xs-12 col-sm  q-mb-md q-mt-md">
                 <q-card-section>
                     <div class="text-center text-h6">Humidity</div>
                 </q-card-section>

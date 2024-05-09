@@ -140,7 +140,6 @@ function updateChart() {
                 .style('opacity', 1)
                 .style('left', `${d3.pointer(event)[0]+60}px`)
                 .style('top', `${d3.pointer(event)[1]}px`);
-          //      .text(`Temperature: ${d._value}°C`);
         })
         .on('mouseout', function (event, d) {
             d3.select("div.tip")
@@ -163,7 +162,7 @@ function updateChart() {
 
     svg.append('g')
         .attr('transform', `translate(30, 0)`)
-        .call(d3.axisLeft(yAxis).tickSize(3).ticks(10).tickFormat(d => `${d}°C`))
+        .call(d3.axisLeft(yAxis).tickSize(3).tickSizeOuter(0).ticks(10).tickFormat(d => `${d}°C`))
         .call(g => g.select('.domain').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))   
         .selectAll('text')
@@ -171,7 +170,7 @@ function updateChart() {
 
     svg.append('g')
         .attr('transform', `translate(370,0)`)
-        .call(d3.axisRight(y2Axis).tickSize(3).ticks(5).tickFormat(d => `${d}kts`))
+        .call(d3.axisRight(y2Axis).tickSize(3).tickSizeOuter(0).ticks(5).tickFormat(d => `${d}kts`))
         .call(g => g.select('.domain').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
         .selectAll('text')
@@ -179,11 +178,11 @@ function updateChart() {
 
     svg.append('g')
         .attr('transform', `translate(30, 100)`)
-        .call(d3.axisBottom(xAxis).tickSize(2).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
+        .call(d3.axisBottom(xAxis).tickSize(2).tickSizeOuter(0).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
         .call(g => g.select('.domain').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick text').style('font-size', '6px'))
-        .call(g => g.selectAll('.tick:last-of-type line').style('stroke', 'black').style('stroke-width', 1))
+        //.call(g => g.selectAll('.tick:last-of-type line').style('stroke', 'black').style('stroke-width', 1))
         .selectAll('text')
         //.style('font-size', '6px')
         .attr('transform', 'translate(-7, 15) rotate(-90)');
