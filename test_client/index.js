@@ -2,12 +2,15 @@ import { confirm, select, input } from "@inquirer/prompts";
 import WebSocket from "ws";
 import mqtt from "mqtt";
 
+const mac = `00:11:22:33:44:${Math.floor(Math.random() * 99).toString()}`
+console.log("MAC: ", mac);  
+
 let wsClient, prodWsClient;
 let data = {
   clientId: "",
   hwVersion: "",
   swVersion: "",
-  mac: "00:11:22:33:44:55"
+  mac: mac
 };
 
 const prodSensorData = {
@@ -199,7 +202,7 @@ async function ask() {
         clientId: clientId,
         hwVersion: hwVersion,
         swVersion: swVersion,
-        mac: "00:11:22:33:44:55"
+        mac: mac
       };
 
       await connectWs();
@@ -284,7 +287,7 @@ function prepareWsData(device, fwVer, hwVer) {
   const message = {
     type: "measurements",
     clientId: device,
-    mac: "00:11:22:33:44:55",
+    mac: mac,
     data: data
   }
   return JSON.stringify(message);

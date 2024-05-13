@@ -4,7 +4,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeMount, onBeforeUpdate } from 'vue';
+import { ref, computed, onMounted, onBeforeUpdate, onBeforeUnmount } from 'vue';
 import * as d3 from 'd3';
 import { InfluxDB } from '@influxdata/influxdb-client-browser'
 
@@ -13,6 +13,7 @@ const props = defineProps({
     device: String
 });
 
+let intervalId;
 const queryApi = new InfluxDB({ url: process.env.INFLUX_URL, token: process.env.INFLUX_TOKEN }).getQueryApi(process.env.INFLUX_ORG);
 const flexQuery = `from(bucket: "${process.env.INFLUX_BUCKET}")
   |> range(start: -24h)
@@ -47,16 +48,15 @@ const humidityMeasurements = computed(() => {
 const directionMeasurements = computed(() => {
     return measurements.value.filter(m => m._field === 'direction');
 });
-onBeforeMount(async () => {
-
-    //    createChart();
+onBeforeUnmount(async () => {
+    clearInterval(intervalId);
 });
 onMounted(async () => {
     //   await iterateRows();
     await iterateRows();
     updateFunctions();
     createChart();
-    setInterval(async () => {
+    intervalId = setInterval(async () => {
         await iterateRows();
         updateFunctions();
         updateChart();
@@ -192,6 +192,11 @@ function createChart() {
         .call(d3.axisLeft(yAxis).tickValues([0, 5, 10, 15, 20, 25, 30, 35, 40]).tickSize(3).tickSizeOuter(0).tickFormat(d => `${d}°C`))
         .call(g => g.select('.domain').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
+        .call(g => g.selectAll('.tick line').clone()
+                    .attr('stroke-opacity', 0.2)
+                    .attr('stroke-dasharray', '1,1')
+                    .attr('stroke-width', 0.2)
+                    .attr('x2', width - margin.left - margin.right))
         .selectAll('text')
         .style('font-size', '6px');
 
