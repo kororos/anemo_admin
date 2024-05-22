@@ -193,10 +193,10 @@ function createChart() {
         .call(g => g.select('.domain').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').clone()
-                    .attr('stroke-opacity', 0.2)
-                    .attr('stroke-dasharray', '1,1')
-                    .attr('stroke-width', 0.2)
-                    .attr('x2', width - margin.left - margin.right))
+            .attr('stroke-opacity', 0.2)
+            .attr('stroke-dasharray', '1,1')
+            .attr('stroke-width', 0.2)
+            .attr('x2', width - margin.left - margin.right))
         .selectAll('text')
         .style('font-size', '6px');
 
@@ -225,7 +225,7 @@ function createChart() {
         .attr('class', 'tip')
         .style('opacity', 0)
         .style('position', 'absolute')
-        .style('background-color', 'white')
+        .style('background-color', 'secondary')
         .style('border', '1px solid black')
         .style('padding', '5px')
         .style('border-radius', '5px')
@@ -246,11 +246,25 @@ function updateChart() {
     d3.select('#tempArea')
         .data([tempMeasurements.value])
         .join('path')
-            .attr('d', d => area(d));
+        .attr('d', d => area(d));
 
     d3.selectAll('#speedArea')
         .data([speedMeasurements.value])
         .join('path')
-            .attr('d', d => speedArea(d));
+        .attr('d', d => speedArea(d));
 }
 </script>
+
+<style lang="scss">
+body.body--dark {
+    .tip {
+        background-color: $secondary;
+    }
+}
+
+body.body--light {
+    .tip {
+        background-color: $secondary;
+    }
+}
+</style>

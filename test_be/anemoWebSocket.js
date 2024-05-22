@@ -58,6 +58,11 @@ function startAnemoWebSocketServer(server) {
       }
       // Handle the received message here
     });
+    
+    ws.on("ping", () => {
+      console.log(`Ping received from client with uuid: ${uuid}`);
+      //ws.pong();
+    });
 
     ws.on("close", () => {
       // Handle client disconnection here
