@@ -60,7 +60,7 @@ function startAnemoWebSocketServer(server) {
     });
     
     ws.on("ping", () => {
-      console.log(`Ping received from client with uuid: ${uuid}`);
+      console.log(`[${new Date().toISOString()}]: Ping received from client with uuid: ${uuid}`);
       //ws.pong();
     });
 
