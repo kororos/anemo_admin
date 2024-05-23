@@ -61,7 +61,10 @@ function startAnemoWebSocketServer(server) {
     
     ws.on("ping", () => {
       console.log(`[${new Date().toISOString()}]: Ping received from client with uuid: ${uuid}`);
-      //ws.pong();
+      if(!clients.has(mac)){
+        console.log(`[${new Date().toISOString()}]: Client with uuid: ${uuid} not found - Disconnecting to force reconnect`);
+        ws.close();
+      }
     });
 
     ws.on("close", () => {
