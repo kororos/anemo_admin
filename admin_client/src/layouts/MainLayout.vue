@@ -32,6 +32,10 @@
 
         <EssentialLink v-for="link in essentialLinks" :key="link.title" v-bind="link" />
       </q-list>
+      <q-separator />
+      <q-item-label header>
+        Version: {{ version }}
+      </q-item-label>
     </q-drawer>
 
     <q-page-container class="test">
@@ -48,7 +52,7 @@ import EssentialLink from 'components/EssentialLink.vue';
 import { useWebSocketStore } from '../stores/webSocketStore.js';
 import WebSocketStateIcon from 'src/components/WebSocketStateIcon.vue';
 import { useAuthStore } from '@/stores/authStore';
-
+const version = process.env.VUE_APP_VERSION;
 const menuLinksList = [
   {
     title: 'Dashboard',
@@ -134,19 +138,22 @@ body.body--dark {
     //background-color: $blue-grey-10;
     background-color: $dark-page;
   }
-  
+
   .menu-title {
     background-color: $grey-10;
   }
+
   .q-header {
     background-color: $grey-10;
   }
 
 }
+
 .menu-title {
   background-color: $indigo-5;
   color: white;
 }
+
 .test {
   background-color: $grey-2;
 }
