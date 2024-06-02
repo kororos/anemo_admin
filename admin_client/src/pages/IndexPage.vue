@@ -1,12 +1,17 @@
 <template>
-  <div class="flex row justify-center">
-    <q-page class="column justify-center ">
-      <summary-anemo-table class="q-ma-md" @restart-success="onRestartSuccess" @restart-fail="onRestartFail" @row-clicked="onRowClicked">
+  <q-page>
+    <div class="row">
+      <summary-anemo-table class="q-ma-md col" @restart-success="onRestartSuccess" @restart-fail="onRestartFail"
+        @row-clicked="onRowClicked">
       </summary-anemo-table>
-      <div class="row  justify-between q-ma-md">
-        <firmware-info-table ref="firmwareInfoTable" class="q-mr-md col" style="min-width: 500px;"
+    </div>
+    <div class="q-ma-md">
+      <div class="row justify-between q-gutter-md ">
+        <!-- <firmware-info-table ref="firmwareInfoTable" class="q-mb-md-none q-mb-sm-md q-mr-sm-md col-md-auto col-sm-12" -->
+        <firmware-info-table ref="firmwareInfoTable" class="col-md-grow col-xs-12"
           @delete-successful="onDeleteSuccessful" @delete-failed="onDeleteFailed"></firmware-info-table>
-        <q-card class="q-ml-md col" style="min-width: 400px; max-width: 400px;">
+        <!-- <q-card class="q-ml-md-md q-ml-sm-none col-sm-12 col-md-grow"> -->
+        <q-card class="col-xs-12 col-md-grow">
           <q-card-section>
             <q-linear-progress :value="progress" :color="progressColor" animation-speed="100" />
           </q-card-section>
@@ -16,9 +21,8 @@
           </q-card-section>
         </q-card>
       </div>
-
-    </q-page>
-  </div>
+    </div>
+  </q-page>
 </template>
 
 <script setup>
@@ -90,12 +94,10 @@ function onRestartFail() {
   })
 }
 
-function onRowClicked(row){
+function onRowClicked(row) {
   console.log(row);
-  router.push({name: `live`, query: {uuid: row.uuid, device: row.clientId}});
+  router.push({ name: `live`, query: { uuid: row.uuid, device: row.clientId } });
 }
 
 </script>
-<style scoped>
-
-</style>
+<style scoped></style>

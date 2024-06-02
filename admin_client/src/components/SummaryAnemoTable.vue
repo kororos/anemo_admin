@@ -5,6 +5,7 @@
       :rows="rows"
       :columns="columns"
       row-key="clientId"
+      wrap-cells
       @row-click="onRowClicked"
     >
       <template v-slot:body-cell-action="props">
