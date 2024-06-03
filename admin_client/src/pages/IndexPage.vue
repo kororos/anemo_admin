@@ -1,25 +1,27 @@
 <template>
   <q-page>
-    <div class="row">
-      <summary-anemo-table class="q-ma-md col" @restart-success="onRestartSuccess" @restart-fail="onRestartFail"
+    <div>
+      <summary-anemo-table class="q-ma-md" @restart-success="onRestartSuccess" @restart-fail="onRestartFail"
         @row-clicked="onRowClicked">
       </summary-anemo-table>
-    </div>
-    <div class="q-ma-md">
-      <div class="row justify-between q-gutter-md ">
-        <!-- <firmware-info-table ref="firmwareInfoTable" class="q-mb-md-none q-mb-sm-md q-mr-sm-md col-md-auto col-sm-12" -->
-        <firmware-info-table ref="firmwareInfoTable" class="col-md-grow col-xs-12"
-          @delete-successful="onDeleteSuccessful" @delete-failed="onDeleteFailed"></firmware-info-table>
-        <!-- <q-card class="q-ml-md-md q-ml-sm-none col-sm-12 col-md-grow"> -->
-        <q-card class="col-xs-12 col-md-grow">
-          <q-card-section>
-            <q-linear-progress :value="progress" :color="progressColor" animation-speed="100" />
-          </q-card-section>
-          <q-card-section>
-            <firmware-upload @upload-finished="uploadFinished" @progress-upload="updateProgress"
-              @upload-error="uploadError"> </firmware-upload>
-          </q-card-section>
-        </q-card>
+      <div class="q-ma-md">
+        <div class="row q-col-gutter-md">
+          <div class="col-xs-12 col-md-grow">
+            <firmware-info-table ref="firmwareInfoTable" @delete-successful="onDeleteSuccessful"
+              @delete-failed="onDeleteFailed"></firmware-info-table>
+          </div>
+          <div class="col-xs-12 col-md-grow">
+            <q-card>
+              <q-card-section>
+                <q-linear-progress :value="progress" :color="progressColor" animation-speed="100" />
+              </q-card-section>
+              <q-card-section>
+                <firmware-upload @upload-finished="uploadFinished" @progress-upload="updateProgress"
+                  @upload-error="uploadError"> </firmware-upload>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
       </div>
     </div>
   </q-page>
