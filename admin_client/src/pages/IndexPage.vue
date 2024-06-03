@@ -7,11 +7,11 @@
       <div class="q-ma-md">
         <div class="row q-col-gutter-md">
           <div class="col-xs-12 col-md-grow">
-            <firmware-info-table ref="firmwareInfoTable" @delete-successful="onDeleteSuccessful"
+            <firmware-info-table ref="firmwareInfoTable" class="full-height" @delete-successful="onDeleteSuccessful"
               @delete-failed="onDeleteFailed"></firmware-info-table>
           </div>
           <div class="col-xs-12 col-md-grow">
-            <q-card>
+            <q-card class="full-height">
               <q-card-section>
                 <q-linear-progress :value="progress" :color="progressColor" animation-speed="100" />
               </q-card-section>
@@ -102,4 +102,8 @@ function onRowClicked(row) {
 }
 
 </script>
-<style scoped></style>
+<style scoped>
+.full-height {
+  height: 100%;
+}
+</style>
