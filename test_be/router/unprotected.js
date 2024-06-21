@@ -224,4 +224,25 @@ router.get('/api/otaUpdate', async (req, res) => {
     }
 });
 
+router.get('/api/otaUpdateCheck', async (req, res) => {
+
+    // Get the firmware version from the query string
+    const currentFullVersion = req.headers['x-esp32-version'];
+    if(!currentFullVersion){
+        res.status(400).json({message: 'Invalid request'});
+        return;
+    }
+    const hwVersion = currentFullVersion.split('-')[1];
+    const swVersion = currentFullVersion.split('-')[0];
+    
+    if(swVersion === '0.0.0'){
+        res.status(200).json({message: 'New firmware available', version: '1.0.0'});
+        return;
+    }else{
+        res.status(304).json({message: 'No updates available'});
+        return;
+    }
+});
+
+
 export default router;
