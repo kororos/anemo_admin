@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { getGoogleOAuthTokens } from '../services/user.service.js';
 import db from '../db/models/index.js';
 import path  from 'path';
+import { log } from 'console';
 
 const accessTokenLife = '2m';
 const refreshTokenLife = '1d';
@@ -224,8 +225,24 @@ router.get('/api/otaUpdate', async (req, res) => {
     }
 });
 
-router.get('/api/otaUpdateCheck', async (req, res) => {
 
+/**
+    * GET /api/otaUpdateCheck
+    * This route handler checks if there is a new firmware version available.
+    * It receives the current firmware version from the request headers,
+    * checks if the firmware version is '0.0.0',
+    *
+    * If the firmware version is '0.0.0', it sends a 'New firmware available' message with the new firmware version.
+    * If not, it sends a 'No updates available' message.
+    * 
+    * @param {Object} req - The Express request object. The request headers should contain 'x-esp8266-version'.
+    * @param {Object} res - The Express response object. The response will contain a message.
+    * @returns {Promise<void>} - A Promise that resolves when the method has finished executing.
+    * 
+ */
+router.get('/api/otaUpdateCheck', async (req, res) => {
+    log('req.headers', req.headers);
+    
     // Get the firmware version from the query string
     const currentFullVersion = req.headers['x-esp32-version'];
     if(!currentFullVersion){
