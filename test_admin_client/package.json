@@ -12,6 +12,6 @@
   "dependencies": {
     "@inquirer/prompts": "^3.3.2",
     "axios": "^1.6.7",
-    "ws": "^8.16.0"
+    "ws": "^8.17.1"
   }
 }
