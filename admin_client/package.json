@@ -17,7 +17,7 @@
     "@influxdata/influxdb-client-browser": "^1.33.2",
     "@quasar/extras": "^1.16.4",
     "@zip.js/zip.js": "^2.7.43",
-    "axios": "^1.2.1",
+    "axios": "^1.7.4",
     "browser-or-node": "^3.0.0",
     "d3": "^7.9.0",
     "decompress": "^4.2.1",
