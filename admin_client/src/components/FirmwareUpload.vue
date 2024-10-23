@@ -40,7 +40,7 @@ function fileSelected(file) {
   console.log(isBrowser ? "Browser" : "Node");
   //check if the file extension is zip
   if (file.name.split('.').pop() == 'zip') {
-
+    console.log("Zip file selected");
     const zipFile = new zip.ZipReader(new zip.BlobReader(file));
     zipFile.getEntries().then((entries) => {
       console.log(entries);
@@ -62,6 +62,8 @@ function fileSelected(file) {
       });
 
     });
+  }else{
+    console.log("Not a zip file");
   }
 }
 
