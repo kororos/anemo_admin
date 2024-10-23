@@ -3,7 +3,8 @@
     <q-form @submit.prevent="submitForm" class="q-gutter-md">
       <q-input v-model="hwVersion" id="hwVersion" label="Hardware Version" outlined dense></q-input>
       <q-input v-model="swVersion" id="swVersion" label="Software Version" outlined dense></q-input>
-      <q-file dense outlined bottom-slots @update:model-value="fileSelected" v-model="path" id="firmwareFile" label="Firmware File" counter>
+      <q-file dense outlined bottom-slots @update:model-value="fileSelected" v-model="path" id="firmwareFile"
+        label="Firmware File" counter>
         <template v-slot:prepend>
           <q-icon name="cloud_upload" @click.stop.prevent />
         </template>
@@ -35,29 +36,33 @@ const uploadProgress = ref(0);
 const emit = defineEmits(['progressUpload', 'uploadFinished', 'uploadError']);
 
 function fileSelected(file) {
-  console.log("File selected: ",file);
-  console.log(isBrowser? "Browser" : "Node");
-  const zipFile = new zip.ZipReader(new zip.BlobReader(file));
-  zipFile.getEntries().then((entries) => {
-    console.log(entries);
-    // If the filename is descriptor.txt read the file and parse the contents
-    entries.forEach(async (entry) => {
-      if (entry.filename === 'descriptor.txt') {
-        const text = await entry.getData(new zip.TextWriter());
-        // Split the text by new line. For each line read the key value pair
-        const lines = text.split('\n');
-        for (const line of lines) {
-          const [key, value] = line.split('=');
-          if (key === 'hwVersion') {
-            hwVersion.value = value;
-          } else if (key === 'swVersion') {
-            swVersion.value = value;
+  console.log("File selected: ", file);
+  console.log(isBrowser ? "Browser" : "Node");
+  //check if the file extension is zip
+  if (file.name.split('.').pop() == 'zip') {
+
+    const zipFile = new zip.ZipReader(new zip.BlobReader(file));
+    zipFile.getEntries().then((entries) => {
+      console.log(entries);
+      // If the filename is descriptor.txt read the file and parse the contents
+      entries.forEach(async (entry) => {
+        if (entry.filename === 'descriptor.txt') {
+          const text = await entry.getData(new zip.TextWriter());
+          // Split the text by new line. For each line read the key value pair
+          const lines = text.split('\n');
+          for (const line of lines) {
+            const [key, value] = line.split('=');
+            if (key === 'hwVersion') {
+              hwVersion.value = value;
+            } else if (key === 'swVersion') {
+              swVersion.value = value;
+            }
           }
         }
-      }
-    });
+      });
 
-  });
+    });
+  }
 }
 
 function enabled() {
@@ -109,6 +114,4 @@ async function submitForm() {
 }
 </script>
 
-<style>
-
-</style>
+<style></style>
