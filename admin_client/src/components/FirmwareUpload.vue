@@ -24,7 +24,7 @@
 <script setup>
 import { ref } from 'vue';
 import { api } from '../boot/axios.js';
-import { useQuasar } from 'quasar';
+import { is, useQuasar } from 'quasar';
 import { isBrowser, isNode } from 'browser-or-node';
 import * as zip from "@zip.js/zip.js";
 
@@ -62,7 +62,7 @@ function fileSelected(file) {
       });
 
     });
-  }else{
+  } else {
     console.log("Not a zip file");
   }
 }
@@ -71,23 +71,32 @@ function enabled() {
   return hwVersion.value && swVersion.value && path.value;
 }
 async function submitForm() {
+  var isZip = false;
   // Handle form submission here
   const formData = new FormData();
   formData.append('hwVersion', hwVersion.value);
   formData.append('swVersion', swVersion.value);
   //formData.append('file', path.value);
 
-  // Unzip the file and read the firmware.bin file. Send this file to the api/formwareUpload endpoint
-  const zipFile = await new zip.ZipReader(new zip.BlobReader(path.value));
-  const entries = await zipFile.getEntries();
-  for (const entry of entries) {
-    if (entry.filename === 'firmware.bin') {
-      const fileData = await entry.getData(new zip.BlobWriter());
-      formData.append('file', fileData, 'firmware.bin');
-      break;
-    }
+  //check if the file is a zip file
+  if (path.value.name.split('.').pop() == 'zip') {
+    isZip = true;
   }
-  await zipFile.close();
+  if (isZip) {
+    // Unzip the file and read the firmware.bin file. Send this file to the api/formwareUpload endpoint
+    const zipFile = await new zip.ZipReader(new zip.BlobReader(path.value));
+    const entries = await zipFile.getEntries();
+    for (const entry of entries) {
+      if (entry.filename === 'firmware.bin') {
+        const fileData = await entry.getData(new zip.BlobWriter());
+        formData.append('file', fileData, 'firmware.bin');
+        break;
+      }
+    }
+    await zipFile.close();
+  } else {
+    formData.append('file', path.value);
+  }
   const response = await api.post('/api/firmwareUpload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
