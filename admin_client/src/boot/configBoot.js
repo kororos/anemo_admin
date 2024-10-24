@@ -7,10 +7,10 @@ export default boot(async ({ app }) => {
     // If there are any conflicts, the env.json file will take precedence.
 
     // Check if the file env.json exists
-    const envJson = await fetch('/env.json');
-    if (envJson.status === 200) {
+    const configJson = await fetch('/config.json');
+    if (configJson.status === 200) {
         console.log('env.json exists');
-        const env = await envJson.json();
+        const env = await configJson.json();
         for (const key in env) {
             console.log(`${key}: ${env[key]}`);
             process.env[key] = env[key];
