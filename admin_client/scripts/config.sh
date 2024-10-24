@@ -1,5 +1,5 @@
 #!/bin/sh
-cat << EOF > /app/dist/config.js
+cat << EOF > /app/config.js
 {
     INFLUX_URL=${INFLUX_URL}
     INFLUX_TOKEN=${INFLUX_TOKEN}
