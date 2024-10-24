@@ -14,5 +14,8 @@ RUN WS_BASE_URL=wss://wsanemo.kororos.eu/ws/admin API_BASE_URL=https://wsanemo.k
 # production stage
 FROM nginx:alpine as production-stage
 COPY --from=build-stage /app/dist/spa /usr/share/nginx/html
+COPY config.sh /app/config.sh
+RUN chmod +x /app/config.sh
 EXPOSE 9000
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+#ENTRYPOINT ["nginx", "-g", "daemon off;"]
+CMD ["/bin/sh", "-c", "/app/config.sh && nginx -g 'daemon off;'"]
