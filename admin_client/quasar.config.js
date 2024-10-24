@@ -31,7 +31,7 @@ require('dotenv').config();
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
-      'configBoot',
+
       'axios',
       'authBoot'
     ],
