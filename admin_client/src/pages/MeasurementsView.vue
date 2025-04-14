@@ -33,8 +33,11 @@
                 </q-card-section>
                 <MeasurementsD3 id="measurements" :device="props.device"  />
             </q-card>
-            <q-card class="col-12 q-mr-md q-mb-md">
+            <q-card class="col-xs-12 col-sm q-mr-md q-mb-md q-mt-md">
                 <VersionCard :fw-version="firmwareVersion" />
+            </q-card>
+            <q-card class="col-xs-12 col-sm q-mb-md q-mt-md">
+                <LastUpdateCard :timestamp="lastUpdateTimestamp" />
             </q-card>
         </div>
     </q-page>
@@ -47,12 +50,14 @@ import GaugeD3 from 'src/components/GaugeD3.vue';
 import CompassD3 from 'src/components/CompassD3.vue';
 import MeasurementsD3 from 'src/components/MeasurementsD3.vue';
 import VersionCard from 'src/components/VersionCard.vue';
+import LastUpdateCard from 'src/components/LastUpdateCard.vue';
 
 const speed = ref(0);
 const temperature = ref(0);
 const humidity = ref(0);
 const direction = ref(0);
 const firmwareVersion = ref('Unknown');
+const lastUpdateTimestamp = ref('Unknown');
 const props = defineProps({
     uuid: String,
     device: String
@@ -98,8 +103,10 @@ const fetchMeasurements = async () => {
             const versionData = data.find(item => item._field =='version');
             if (versionData) {
                 firmwareVersion.value = versionData._value;
+                lastUpdateTimestamp.value = versionData._time || 'Unknown';
             } else {
                 firmwareVersion.value = 'Unknown';
+                lastUpdateTimestamp.value = 'Unknown';
             }
         } else {
             // Reset values if no data is available
@@ -108,6 +115,7 @@ const fetchMeasurements = async () => {
             humidity.value = 0;
             direction.value = 0;
             firmwareVersion.value = 'Unknown';
+            lastUpdateTimestamp.value = 'Unknown';
         }
     } catch (error) {
         console.error('Error fetching measurements:', error);
@@ -118,6 +126,7 @@ const fetchMeasurements = async () => {
         humidity.value = 0;
         direction.value = 0;
         firmwareVersion.value = 'Unknown';
+        lastUpdateTimestamp.value = 'Unknown';
     }
 };
 
