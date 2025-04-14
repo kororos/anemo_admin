@@ -33,6 +33,9 @@
                 </q-card-section>
                 <MeasurementsD3 id="measurements" :device="props.device"  />
             </q-card>
+            <q-card class="col-12 q-mr-md q-mb-md">
+                <VersionCard :fw-version="firmwareVersion" />
+            </q-card>
         </div>
     </q-page>
 </template>
@@ -43,11 +46,13 @@ import { api } from 'src/boot/axios';
 import GaugeD3 from 'src/components/GaugeD3.vue';
 import CompassD3 from 'src/components/CompassD3.vue';
 import MeasurementsD3 from 'src/components/MeasurementsD3.vue';
+import VersionCard from 'src/components/VersionCard.vue';
 
 const speed = ref(0);
 const temperature = ref(0);
 const humidity = ref(0);
 const direction = ref(0);
+const firmwareVersion = ref('Unknown');
 const props = defineProps({
     uuid: String,
     device: String
@@ -88,12 +93,21 @@ const fetchMeasurements = async () => {
                 speed.value = rotPerSecSensor._value * 1.46 || 0;
                 if (speed.value >= 1) speed.value = speed.value + 1;
             }
+            
+            // Find firmware version data
+            const versionData = data.find(item => item._field =='version');
+            if (versionData) {
+                firmwareVersion.value = versionData._value;
+            } else {
+                firmwareVersion.value = 'Unknown';
+            }
         } else {
             // Reset values if no data is available
             speed.value = 0;
             temperature.value = 0;
             humidity.value = 0;
             direction.value = 0;
+            firmwareVersion.value = 'Unknown';
         }
     } catch (error) {
         console.error('Error fetching measurements:', error);
@@ -103,6 +117,7 @@ const fetchMeasurements = async () => {
         temperature.value = 0;
         humidity.value = 0;
         direction.value = 0;
+        firmwareVersion.value = 'Unknown';
     }
 };
 
