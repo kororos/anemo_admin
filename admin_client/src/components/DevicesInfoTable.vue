@@ -1,5 +1,5 @@
 <template>
-  <q-table :rows="rows" :columns="columns" row-key="macAddress">
+  <q-table :rows="rows" :columns="columns" row-key="macAddress" @row-click="onRowClick">
     <template v-slot:body-cell-status="props">
       <q-td :props="props">
         <q-chip :label="props.row.status" outline :color="props.row.status === 'Online' ? 'positive' : 'negative'" text-color="white" />
@@ -13,7 +13,7 @@ import { onMounted, ref } from 'vue';
 import { useWebSocketStore } from "src/stores/webSocketStore";
 import { api } from 'src/boot/axios';
 const store = useWebSocketStore();
-const emit = defineEmits(['apiFail', 'apiSuccess']);
+const emit = defineEmits(['apiFail', 'apiSuccess', 'device-selected']);
 
 const rows = ref([]);
 const columns = [
@@ -98,5 +98,9 @@ const checkDeviceStatus = async () => {
       device.status = "Offline";
     }
   });
+}
+
+const onRowClick = (evt, row) => {
+  emit('device-selected', row.clientId);
 }
 </script>
