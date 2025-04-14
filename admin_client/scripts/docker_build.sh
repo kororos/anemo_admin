@@ -2,7 +2,7 @@
 
 # Define variables
 IMAGE_NAME="anemo-admin-fe"
-VERSION=$(node -p "require('../package.json').version")
+VERSION=$(grep -m 1 '"version":' ../package.json | sed -E 's/.*"version": "([^"]+)".*/\1/')
 TAG="$VERSION"
 DOCKERFILE_PATH="../."
 DOCKER_REGISTRY="registry.kororos.eu/anemometer"
