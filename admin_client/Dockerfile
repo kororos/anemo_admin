@@ -15,6 +15,10 @@ RUN WS_BASE_URL=wss://wsanemo.kororos.eu/ws/admin \
     GOOGLE_REDIRECT_URI=https://wsanemo.kororos.eu/session/oauth/google \
     GOOGLE_CLIENT_ID=793768332648-i9b67c88bg1qlasv6rh4lq1cn734eja9.apps.googleusercontent.com \
     VUE_APP_VERSION=$APP_VERSION \
+    INFLUX_URL=https://influxdb.kororos.eu \
+    INFLUX_TOKEN=Odz3zj00upwWqMz42ZWUyYMyOX5aYe6fy9dZm1mDqUigYeFSVFt5gGVAZj2AZpr2bAzkLhLHKMsVlYmlBZouKA== \
+    INFLUX_ORG=corenet-solutions \
+    INFLUX_BUCKET=anemo \
     quasar build
 #RUN WS_BASE_URL=ws://anemo-admin-be:3000/ws/admin API_BASE_URL=http://anemo-admin-be:3000 quasar build
 
