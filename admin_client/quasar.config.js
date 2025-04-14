@@ -8,12 +8,14 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
+import { configure } from 'quasar/wrappers';
+import path from 'path';
+import { Notify } from 'quasar';
+import dotenv from 'dotenv';
 
-const { configure } = require('quasar/wrappers');
-const path = require('path');
-const { Notify } = require('quasar');
-require('dotenv').config();
-  module.exports = configure(function (/* ctx */) {
+dotenv.config();
+
+export default configure(function (/* ctx */) {
   return {
     eslint: {
       // fix: true,
@@ -94,7 +96,12 @@ require('dotenv').config();
       extendViteConf (viteConf, {isServer, isClient}) {
         Object.assign(viteConf.resolve.alias, {
           "@": path.join(__dirname, './src')
-        })
+        });
+        
+        // Enable JSON imports
+        viteConf.json = {
+          stringify: true
+        };
       },
       // viteVuePluginOptions: {},
 
@@ -113,6 +120,9 @@ require('dotenv').config();
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
       config: {
+        notify: {
+          /* Notify defaults */
+        }
       },
 
       // iconSet: 'material-icons', // Quasar icon set
@@ -128,12 +138,7 @@ require('dotenv').config();
       // Quasar plugins
       plugins: [
         'Notify'
-      ],
-      config: {
-        notify: {
-          /* Notify defaults */
-        }
-      }
+      ]
     },
 
     // animations: 'all', // --- includes all animations

@@ -34,7 +34,7 @@
       </q-list>
       <q-separator />
       <q-item-label header>
-        Version: {{ version }}
+        Version: {{ packageVersion }}
       </q-item-label>
     </q-drawer>
 
@@ -52,7 +52,7 @@ import EssentialLink from 'components/EssentialLink.vue';
 import { useWebSocketStore } from '../stores/webSocketStore.js';
 import WebSocketStateIcon from 'src/components/WebSocketStateIcon.vue';
 import { useAuthStore } from '@/stores/authStore';
-const version = process.env.VUE_APP_VERSION;
+import { version as packageVersion } from '../../package.json';
 const menuLinksList = [
   {
     title: 'Dashboard',
