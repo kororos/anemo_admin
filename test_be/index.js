@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import routes from './router/router.js';
 import firmwareUploadRoutes from './router/firmwareUploadRouter.js';
 import firmwareInfoRoutes from './router/firmwareInfo.js';
+import measurementRoutes from './router/measurementRouter.js';
 import authRoutes from './router/auth.js';
 import unprotected from './router/unprotected.js';
 import isLoggedIn from './middleware/auth.js';
@@ -30,7 +31,7 @@ app.use(cookieParser());
 
 app.use(unprotected);
 app.use(isLoggedIn);
-app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes, authRoutes);
+app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes, measurementRoutes, authRoutes);
 
 
 
