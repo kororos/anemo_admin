@@ -14,6 +14,8 @@ const props = defineProps({
 });
 
 let intervalId;
+console.log(`INFLUX_URL: ${process.env.INFLUX_URL}`);
+console.log(`INFLUX_TOKEN: ${process.env.INFLUX_TOKEN}`);
 const queryApi = new InfluxDB({ url: process.env.INFLUX_URL, token: process.env.INFLUX_TOKEN }).getQueryApi(process.env.INFLUX_ORG);
 const flexQuery = `from(bucket: "${process.env.INFLUX_BUCKET}")
   |> range(start: -24h)
