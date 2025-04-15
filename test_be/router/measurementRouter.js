@@ -19,8 +19,8 @@ const bucket = process.env.INFLUXDB_BUCKET || "anemometer";
 // Create InfluxDB client
 const influxDB = new InfluxDB({ url, token });
 
-// Define the GET route
-router.get("/api/getMeasurements", await checkRole(['admin']), async (req, res) => {
+// Define the GET route - allow both admin and guest access
+router.get("/api/getMeasurements", await checkRole(['admin', 'guest']), async (req, res) => {
   try {
     const deviceId = req.query.deviceId;
     

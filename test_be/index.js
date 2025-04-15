@@ -7,7 +7,6 @@ import firmwareInfoRoutes from './router/firmwareInfo.js';
 import measurementRoutes from './router/measurementRouter.js';
 import authRoutes from './router/auth.js';
 import unprotected from './router/unprotected.js';
-import isLoggedIn from './middleware/auth.js';
 import { startAnemoWebSocketServer, sendCommand as sendAnemoCommand } from "./anemoWebSocket.js";
 import { startAdminWebSocketServer } from "./adminWebSocket.js";
 import {createServer} from 'http';
@@ -29,8 +28,14 @@ app.options('*', cors());
 
 app.use(cookieParser());
 
+// Authentication flow: 
+// 1. First apply all unprotected routes (no authentication check)
 app.use(unprotected);
-app.use(isLoggedIn);
+
+// 2. Apply all protected routes
+// Authentication is now handled by the checkRole middleware:
+// - Routes with 'guest' role will be accessible without authentication
+// - Other routes will require proper authentication and role permissions
 app.use(routes, firmwareUploadRoutes, firmwareInfoRoutes, measurementRoutes, authRoutes);
 
 

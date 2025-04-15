@@ -77,7 +77,7 @@ routes.post('/api/getClients', await checkRole(['admin']), (req, res, next) => {
     }
 });
 
-routes.get('/api/getKnownDevices', await checkRole(['admin']), async (req, res, next) => {
+routes.get('/api/getKnownDevices', await checkRole(['admin', 'guest']), async (req, res, next) => {
     try {
         const devices = await db.Device.findAll({
             attributes: ['id', ['name', 'clientId'], 'hwVersion', 'fwVersion', 'macAddress', 'lastConnection']

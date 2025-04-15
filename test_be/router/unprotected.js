@@ -175,6 +175,8 @@ router.post('/refresh', async (req, res) => {
     }
 });
 
+// Moving this endpoint to router.js with the guest role
+
 /**
  * GET /api/otaUpdate
  * This route handler handles the OTA (Over The Air) update process.

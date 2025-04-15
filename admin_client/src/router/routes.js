@@ -20,6 +20,13 @@ const routes = [
     meta: { roles: ['admin'] }
   },
   {
+    path: '/public2',
+    component: () => import('layouts/LoginLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/Public2Page.vue') }
+    ]
+  },
+  {
     path: '/public',
     component: () => import('layouts/LoginLayout.vue'),
     children: [

@@ -1,14 +1,14 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 // import db from '../db/models/index.js';
-// import isLoggedIn from '../middleware/auth.js';
+import { checkRole } from '../middleware/auth.js';
 
 const router = express.Router();
 const accessTokenLife = '2m';
 const secretKey = process.env.SECRET_KEY;
 
-router.post('/logout', (req, res) => {
-
+// Requires authentication but doesn't check specific role since any authenticated user can logout
+router.post('/logout', await checkRole(['admin', 'user']), (req, res) => {
     // Set the access token as an HTTP-only cookie
     //const domain = process.env.NODE_ENV === 'production' ? 'kororos.eu' : 'localhost';
 

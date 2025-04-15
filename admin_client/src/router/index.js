@@ -63,11 +63,11 @@ export default route(function (/* { store, ssrContext } */) {
     } else if (to.path === "/signup"){
       //return { path: "/signup" };
       console.log("signup");
-    } else if (to.path === "/public"){
-      console.log("public");
+    } else if (to.path === "/public" || to.path === "/public2"){
+      console.log("public route accessed");
      
     }else {
-      const publicPages = ["/login"];
+      const publicPages = ["/login", "/public", "/public2"];
       const authRequired = !publicPages.includes(to.path);
       const authStore = useAuthStore();
       //authStore.user.access_jwt = cookies.get("access_jwt");
