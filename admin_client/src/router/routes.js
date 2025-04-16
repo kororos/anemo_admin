@@ -30,7 +30,11 @@ const routes = [
     path: '/public',
     component: () => import('layouts/LoginLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/PublicPage.vue') }
+      { 
+        path: '', 
+        component: () => import('pages/PublicPage.vue'),
+        props: route => ({ deviceName: route.query.device })
+      }
     ]
   },
   {
