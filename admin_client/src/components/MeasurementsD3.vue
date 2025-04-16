@@ -186,23 +186,33 @@ function createChart() {
         // Set initial opacity to 0 if no data
         .style('opacity', tempMeasurements.value.length > 0 ? 1 : 0)
         .on('mouseover', function (event, d) {
-            d3.select("div.tip")
+            // Check if there's data before showing tooltip
+            if (tempMeasurements.value.length === 0) return;
+            
+            d3.select("div.chart-tooltip")
                 .style('opacity', 1)
-                .style('left', `${d3.pointer(event)[0] + 60}px`)
-                .style('top', `${d3.pointer(event)[1]}px`);
+                .style('left', `${event.pageX + 10}px`)
+                .style('top', `${event.pageY - 10}px`);
         })
         .on('mouseout', function (event, d) {
-            d3.select("div.tip")
+            d3.select("div.chart-tooltip")
                 .style('opacity', 0);
         })
         .on('mousemove', function (event, d) {
+            // Check if there's data before updating tooltip
+            if (tempMeasurements.value.length === 0 || speedMeasurements.value.length === 0) return;
+            
             const mouseX = d3.pointer(event)[0];
             const mouseTime = xAxis.invert(mouseX);
             const i = d3.bisectLeft(tempMeasurements.value.map(d => d._time), mouseTime);
             const tempDataPoint = tempMeasurements.value[i];
             const j = d3.bisectLeft(speedMeasurements.value.map(d => d._time), mouseTime);
             const speedDataPoint = speedMeasurements.value[j];
-            d3.select("div.tip")
+            
+            // Additional check to ensure we have valid data points
+            if (!tempDataPoint || !speedDataPoint) return;
+            
+            d3.select("div.chart-tooltip")
                 .style('opacity', 1)
                 .style('left', `${event.pageX}px`)
                 .style('top', `${event.pageY}px`)
@@ -266,6 +276,59 @@ function createChart() {
         .style('font-weight', 'bold')
         .style('fill', '#666')
         .text('24-Hour Measurements');
+        
+    // Add invisible overlay rectangle for better mouse interaction across the entire chart
+    svg.append('rect')
+        .attr('class', 'overlay')
+        .attr('width', width - margin.left - margin.right)
+        .attr('height', height - margin.top - margin.bottom)
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+        .style('fill', 'transparent')
+        .style('pointer-events', 'all')
+        .on('mouseover', function(event) {
+            // Only show tooltip if we have data
+            if (tempMeasurements.value.length === 0 || speedMeasurements.value.length === 0) return;
+            d3.select("div.chart-tooltip").style('opacity', 1);
+        })
+        .on('mouseout', function() {
+            d3.select("div.chart-tooltip").style('opacity', 0);
+        })
+        .on('mousemove', function(event) {
+            // Only update tooltip if we have data
+            if (tempMeasurements.value.length === 0 || speedMeasurements.value.length === 0) return;
+            
+            const mouseX = d3.pointer(event)[0];
+            const mouseTime = xAxis.invert(mouseX);
+            
+            // Find closest data points
+            const i = d3.bisectLeft(tempMeasurements.value.map(d => d._time), mouseTime);
+            const tempDataPoint = i < tempMeasurements.value.length ? tempMeasurements.value[i] : null;
+            
+            const j = d3.bisectLeft(speedMeasurements.value.map(d => d._time), mouseTime);
+            const speedDataPoint = j < speedMeasurements.value.length ? speedMeasurements.value[j] : null;
+            
+            // Return if we don't have valid data points
+            if (!tempDataPoint || !speedDataPoint) return;
+            
+            // Update tooltip position and content
+            d3.select("div.chart-tooltip")
+                .style('opacity', 1)
+                .style('left', `${event.pageX + 10}px`)
+                .style('top', `${event.pageY - 10}px`)
+                .html(`<div style="margin-bottom: 4px; font-weight: bold;">
+                  ${new Date(tempDataPoint._time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #4285F4; margin-right: 6px; border-radius: 50%;"></span>
+                  <span style="color: #4285F4; font-weight: 500;">Temperature:</span> 
+                  <span style="margin-left: 4px;">${Math.round(tempDataPoint._value * 10) / 10}°C</span>
+                </div>
+                <div style="display: flex; align-items: center;">
+                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #34A853; margin-right: 6px; border-radius: 50%;"></span>
+                  <span style="color: #34A853; font-weight: 500;">Wind Speed:</span> 
+                  <span style="margin-left: 4px;">${Math.round(speedDataPoint._value * 10) / 10} kts</span>
+                </div>`);
+        });
 
     // Add legend
     const legend = svg.append('g')
@@ -325,9 +388,12 @@ function createChart() {
             .text('No measurement data available');
     }
 
-    //Create an enhanced tooltip div
+    // Remove any existing tooltip first to prevent duplicates
+    d3.selectAll('div.chart-tooltip').remove();
+    
+    // Create an enhanced tooltip div - make sure it has a unique class
     d3.select('body').append('div')
-        .attr('class', 'tip')
+        .attr('class', 'chart-tooltip')
         .style('opacity', 0)
         .style('position', 'absolute')
         .style('background-color', 'rgba(255,255,255,0.9)')
@@ -339,7 +405,7 @@ function createChart() {
         .style('font-weight', '500')
         .style('color', '#333')
         .style('pointer-events', 'none')
-        .style('z-index', '10')
+        .style('z-index', '1000') // Ensure it's above other elements
         .style('transition', 'opacity 0.2s');
 }
 
@@ -404,7 +470,7 @@ function updateChart() {
 
 <style lang="scss">
 body.body--dark {
-    .tip {
+    .chart-tooltip {
         background-color: rgba(40, 44, 52, 0.95) !important;
         color: #e0e0e0 !important;
         border-color: #555 !important;
@@ -426,9 +492,23 @@ body.body--dark {
 }
 
 body.body--light {
-    .tip {
+    .chart-tooltip {
         background-color: rgba(255, 255, 255, 0.95) !important;
     }
+}
+
+/* Global tooltip styles to ensure visibility */
+.chart-tooltip {
+    position: absolute;
+    pointer-events: none;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    z-index: 9999;
+    transition: opacity 0.2s;
 }
 
 // Responsive adjustments for the chart
@@ -437,7 +517,7 @@ body.body--light {
         font-size: 6px !important;
     }
     
-    .tip {
+    .chart-tooltip {
         font-size: 10px !important;
         padding: 6px 10px !important;
     }
