@@ -1,12 +1,12 @@
 # develop stage
-FROM node:current-alpine as develop-stage
+FROM node:current-alpine AS develop-stage
 WORKDIR /app
 COPY package*.json ./
 RUN npm i -g @quasar/cli
 COPY . .
 
 # build stage
-FROM develop-stage as build-stage
+FROM develop-stage AS build-stage
 # Accept version as build argument
 ARG APP_VERSION
 RUN npm install
@@ -23,7 +23,7 @@ RUN WS_BASE_URL=wss://wsanemo.kororos.eu/ws/admin \
 #RUN WS_BASE_URL=ws://anemo-admin-be:3000/ws/admin API_BASE_URL=http://anemo-admin-be:3000 quasar build
 
 # production stage
-FROM nginx:alpine as production-stage
+FROM nginx:alpine AS production-stage
 # Pass version info to container
 ARG APP_VERSION
 ENV APP_VERSION=$APP_VERSION

@@ -141,7 +141,8 @@ export default configure(function (/* ctx */) {
 
       // Quasar plugins
       plugins: [
-        'Notify'
+        'Notify',
+        'Dark'
       ]
     },
 

@@ -75,8 +75,8 @@ async function iterateRows() {
 }
 
 const width = 400;
-const height = 130;
-const margin = { top: 10, right: 30, bottom: 30, left: 30 };
+const height = 150; // Increased height to accommodate labels
+const margin = { top: 10, right: 30, bottom: 50, left: 30 }; // Increased bottom margin for x-axis labels
 
 
 let xAxis;
@@ -213,14 +213,15 @@ function createChart() {
     svg.append('g')
         .attr('id', 'xAxis')
         .attr('transform', `translate(${margin.left}, ${height - margin.bottom})`)
-        .call(d3.axisBottom(xAxis).tickSize(2).tickSizeOuter(0).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
+        .call(d3.axisBottom(xAxis).tickSize(2).tickSizeOuter(0).ticks(d3.timeHour.every(2)).tickFormat(d3.timeFormat('%H:%M')))
         .call(g => g.select('.domain').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick text').style('font-size', '6px'))
         //.call(g => g.selectAll('.tick:last-of-type line').style('stroke', 'black').style('stroke-width', 1))
         .selectAll('text')
         //.style('font-size', '6px')
-        .attr('transform', 'translate(-7, 15) rotate(-90)');
+        .attr('transform', 'translate(-5, 3) rotate(-45)')
+        .style('text-anchor', 'end');
 
     //Create a tooltip div
     d3.select('body').append('div')
@@ -238,12 +239,13 @@ function createChart() {
 function updateChart() {
     xAxis.domain(d3.extent(measurements.value, d => d._time));
     d3.select('#xAxis')
-        .call(d3.axisBottom(xAxis).tickSize(2).tickSizeOuter(0).ticks(d3.timeMinute.every(30)).tickFormat(d3.timeFormat('%H:%M')))
+        .call(d3.axisBottom(xAxis).tickSize(2).tickSizeOuter(0).ticks(d3.timeHour.every(2)).tickFormat(d3.timeFormat('%H:%M')))
         .call(g => g.select('.domain').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick line').style('stroke-width', 0.5))
         .call(g => g.selectAll('.tick text').style('font-size', '6px'))
         .selectAll('text')
-        .attr('transform', 'translate(-7, 15) rotate(-90)');
+        .attr('transform', 'translate(-5, 3) rotate(-45)')
+        .style('text-anchor', 'end');
 
     d3.select('#tempArea')
         .data([tempMeasurements.value])

@@ -28,7 +28,7 @@ const routes = [
   },
   {
     path: '/public',
-    component: () => import('layouts/LoginLayout.vue'),
+    component: () => import('layouts/PublicLayout.vue'),
     children: [
       { 
         path: '', 

@@ -11,7 +11,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import MeasurementsDisplay from 'src/components/MeasurementsDisplay.vue';
 
 // Define props

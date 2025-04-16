@@ -84,7 +84,10 @@
         <VersionCard :fw-version="firmwareVersion" />
       </q-card>
       <q-card class="col-xs-12 col-sm q-mb-md">
-        <LastUpdateCard :timestamp="lastUpdateTimestamp" />
+        <LastUpdateCard 
+          :timestamp="lastUpdateTimestamp" 
+          :deviceSelected="isDeviceSelected" 
+        />
       </q-card>
     </div>
   </div>
@@ -144,6 +147,11 @@ const selectedDeviceId = computed(() => {
     return props.fixedDeviceId;
   }
   return selectedDevice.value?.value || '';
+});
+
+// Computed property to check if a device is selected
+const isDeviceSelected = computed(() => {
+  return !!props.fixedDeviceId || !!selectedDevice.value;
 });
 
 // Computed property to combine WebSocket and API devices

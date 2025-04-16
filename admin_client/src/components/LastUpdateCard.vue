@@ -35,10 +35,14 @@ const props = defineProps({
   preformatted: {
     type: Boolean,
     default: false
+  },
+  deviceSelected: {
+    type: Boolean,
+    default: false
   }
 });
 
-const isUnknown = computed(() => props.timestamp === 'Unknown');
+const isUnknown = computed(() => props.timestamp === 'Unknown' && props.deviceSelected);
 
 const isOld = computed(() => {
   if (props.timestamp === 'Unknown' || props.preformatted) return false;
