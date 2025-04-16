@@ -1,6 +1,6 @@
 {
   "name": "admin-client",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Anemometer Admin Client ",
   "productName": "Anemometer Admin",
   "author": "Lefteris Kororos <lkororos@gmail.com>",

@@ -1,6 +1,26 @@
 <template>
   <q-card-section>
-    <div class="text-center text-h6">Last Update: {{ formattedTimestamp }}</div>
+    <div class="text-center text-h6 row justify-center items-center">
+      Last Update: {{ formattedTimestamp }}
+      <q-icon 
+        v-if="isUnknown" 
+        name="error" 
+        color="negative" 
+        size="sm" 
+        class="q-ml-sm"
+      >
+        <q-tooltip>No data available</q-tooltip>
+      </q-icon>
+      <q-icon 
+        v-else-if="isOld" 
+        name="warning" 
+        color="warning" 
+        size="sm" 
+        class="q-ml-sm"
+      >
+        <q-tooltip>Data is more than 24 hours old</q-tooltip>
+      </q-icon>
+    </div>
   </q-card-section>
 </template>
 
@@ -15,6 +35,23 @@ const props = defineProps({
   preformatted: {
     type: Boolean,
     default: false
+  }
+});
+
+const isUnknown = computed(() => props.timestamp === 'Unknown');
+
+const isOld = computed(() => {
+  if (props.timestamp === 'Unknown' || props.preformatted) return false;
+  
+  try {
+    const date = new Date(props.timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const dayMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    return diffMs > dayMs;
+  } catch (error) {
+    console.error('Error calculating timestamp age:', error);
+    return false;
   }
 });
 
