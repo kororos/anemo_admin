@@ -56,6 +56,7 @@
    - Use Vue 3 Composition API (ref, computed, etc.) for component logic
    - Organize related functionality together
    - Use `onMounted()` for initialization code
+   - Use `subscribe()` instead of watch where possible
 
 ### State Management
 
