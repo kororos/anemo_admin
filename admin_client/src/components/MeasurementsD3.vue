@@ -1,525 +1,522 @@
 <template>
-    <svg :class="props.id">
-    </svg>
+  <svg :class="props.id">
+  </svg>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUpdate, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import * as d3 from 'd3';
-import { InfluxDB } from '@influxdata/influxdb-client-browser'
+import { InfluxDB } from '@influxdata/influxdb-client-browser';
+import { CHART_COLORS, CHART_CONFIG } from '@/utils/chartConfig';
+import { createTooltipContent, findClosestDataPoint, createTooltipElement } from '@/utils/tooltipHelper';
+import { generateQuery, createGradients, addNoDataMessage, createLegend, updateTimeDomain } from '@/utils/chartHelpers';
 
+// Props with validation
 const props = defineProps({
-    id: String,
-    device: String
+  id: {
+    type: String,
+    required: true
+  },
+  device: {
+    type: String,
+    required: true
+  }
 });
 
-let intervalId;
-console.log(`INFLUX_URL: ${process.env.INFLUX_URL}`);
-console.log(`INFLUX_TOKEN: ${process.env.INFLUX_TOKEN}`);
-const queryApi = new InfluxDB({ url: process.env.INFLUX_URL, token: process.env.INFLUX_TOKEN }).getQueryApi(process.env.INFLUX_ORG);
-const flexQuery = `from(bucket: "${process.env.INFLUX_BUCKET}")
-  |> range(start: -24h)
-  |> filter(fn: (r) => r._measurement == "anemometer")
-  |> filter(fn: (r) => r._field == "temp" or r._field == "speed" \
-                                    or r._field == "hummidity" or r._field == "direction" \
-                                    or r._field == "rotPerSec")
-  |> filter(fn: (r) => r.device == "${props.device !== "test" ? props.device : "Aegina"}")
-  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)
-  |> yield(name: "mean")`;
-console.log(flexQuery);
-
+// State management
 const measurements = ref([]);
-const tempMeasurements = computed(() => {
-    return measurements.value.filter(m => m._field === 'temp');
-});
-const rotsPerSecMeasurements = computed(() => {
-    return measurements.value.filter(m => m._field === 'rotPerSec');
+const chartElements = ref({
+  svg: null,
+  xAxis: null,
+  yAxis: null,
+  y2Axis: null,
+  tempPath: null,
+  speedPath: null,
+  tooltip: null,
+  noDataMessage: null,
+  overlay: null
 });
 
-const speedMeasurements = computed(() => {
-    return rotsPerSecMeasurements.value.map(m => {
-        return {
-            _time: m._time,
-            _value: m._value * 1.46
-        }
-    });
+// Scales and path generators
+const scales = ref({
+  x: null,
+  y: null,
+  y2: null
 });
-const humidityMeasurements = computed(() => {
-    return measurements.value.filter(m => m._field === 'hummidity');
+
+const generators = ref({
+  area: null,
+  speedArea: null,
+  line: null,
+  speedLine: null
 });
-const directionMeasurements = computed(() => {
-    return measurements.value.filter(m => m._field === 'direction');
-});
-onBeforeUnmount(async () => {
-    clearInterval(intervalId);
-});
+
+// Interval ID for cleanup
+let dataRefreshInterval = null;
+
+// Query API setup
+const queryApi = new InfluxDB({ 
+  url: process.env.INFLUX_URL, 
+  token: process.env.INFLUX_TOKEN 
+}).getQueryApi(process.env.INFLUX_ORG);
+
+// Computed properties for data series
+const tempMeasurements = computed(() => 
+  measurements.value.filter(m => m._field === 'temp')
+);
+
+const rotsPerSecMeasurements = computed(() => 
+  measurements.value.filter(m => m._field === 'rotPerSec')
+);
+
+const speedMeasurements = computed(() => 
+  rotsPerSecMeasurements.value.map(m => ({
+    _time: m._time,
+    _value: m._value * 1.46
+  }))
+);
+
+const humidityMeasurements = computed(() => 
+  measurements.value.filter(m => m._field === 'hummidity')
+);
+
+const directionMeasurements = computed(() => 
+  measurements.value.filter(m => m._field === 'direction')
+);
+
+// Computed property to check if data is available
+const hasData = computed(() => 
+  measurements.value.length > 0 && 
+  tempMeasurements.value.length > 0 && 
+  speedMeasurements.value.length > 0
+);
+
+// Lifecycle hooks
 onMounted(async () => {
-    //   await iterateRows();
-    await iterateRows();
-    updateFunctions();
-    createChart();
-    intervalId = setInterval(async () => {
-        await iterateRows();
-        updateFunctions();
-        updateChart();
-    }, 10000);
+  await fetchData();
+  initializeChart();
+  setupDataRefresh();
 });
-async function iterateRows() {
-    const rows = [];
-    measurements.value = [];
-    for await (const { values, tableMeta } of queryApi.iterateRows(flexQuery)) {
-        const o = tableMeta.toObject(values);
-        o._time = new Date(o._time);
-        measurements.value.push(o);
-    }
-}
 
-const width = 400;
-const height = 160; // Increased height to accommodate labels and add more space
-const margin = { top: 15, right: 40, bottom: 50, left: 40 }; // Adjusted margins for better spacing
+onUnmounted(() => {
+  cleanupResources();
+});
 
-
-let xAxis;
-let yAxis;
-let y2Axis;
-let line;
-let speedLine;
-let area;
-let speedArea;
-
-function updateFunctions() {
-    xAxis = d3.scaleUtc().range([0, width - margin.left - margin.right]);
-    
-    // Handle empty data case by setting a default domain for x-axis
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    // Use actual data timespan if available, otherwise use last 24h
-    xAxis.domain(
-        tempMeasurements.value.length > 0 
-            ? d3.extent(tempMeasurements.value, d => d._time)
-            : [twentyFourHoursAgo, now]
+// Data fetching
+async function fetchData() {
+  try {
+    const query = generateQuery(
+      process.env.INFLUX_BUCKET,
+      props.device,
+      CHART_CONFIG.timeRange,
+      CHART_CONFIG.timeAggregation
     );
     
-    // Fixed scales for consistent display even with no data
-    yAxis = d3.scaleLinear([0, 45], [height - margin.bottom, 0]);
-    y2Axis = d3.scaleLinear([0, 22.5], [height - margin.bottom, 0]);
+    measurements.value = [];
     
-    line = d3.line()
-        .x(d => xAxis(d._time))
-        .y(d => yAxis(d._value))
-        .defined(d => d && d._time && d._value != null); // Skip invalid data points
-
-    speedLine = d3.line()
-        .x(d => xAxis(d._time))
-        .y(d => y2Axis(d._value))
-        .defined(d => d && d._time && d._value != null); // Skip invalid data points
-
-    area = d3.area()
-        .x(d => xAxis(d._time))
-        .y0(yAxis(0))
-        .y1(d => yAxis(d._value))
-        .defined(d => d && d._time && d._value != null) // Skip invalid data points
-        .curve(d3.curveBasis);
-
-    speedArea = d3.area()
-        .x(d => xAxis(d._time))
-        .y0(y2Axis(0))
-        .y1(d => y2Axis(d._value))
-        .defined(d => d && d._time && d._value != null) // Skip invalid data points
-        .curve(d3.curveBasis);
-}
-function createChart() {
-    const svg = d3.select(`.${props.id}`)
-        .attr('width', "100%")
-        .attr('height', "100%")
-        .attr('viewBox', `0 0 ${width} ${height}`)
-        .attr('preserveAspectRatio', 'xMidYMid meet');
-
-    const defs = svg.append('defs');
-    // Create temperature gradient (using a more vibrant blue)
-    const gradient = defs.append('linearGradient')
-        .attr('id', 'temperature-gradient')
-        .attr('gradientTransform', 'rotate(90)');
-    gradient.append('stop')
-        .attr('offset', '0%')
-        .attr('stop-color', '#4285F4') // Google blue
-        .attr('stop-opacity', 0.8);
-    gradient.append('stop')
-        .attr('offset', '100%')
-        .attr('stop-color', '#4285F4')
-        .attr('stop-opacity', 0.1);
-
-    // Create speed gradient (using a more vibrant green)
-    const speedGradient = defs.append('linearGradient')
-        .attr('id', 'speed-gradient')
-        .attr('gradientTransform', 'rotate(90)');
-    speedGradient.append('stop')
-        .attr('offset', '0%')
-        .attr('stop-color', '#34A853') // Google green
-        .attr('stop-opacity', 0.8);
-    speedGradient.append('stop')
-        .attr('offset', '100%')
-        .attr('stop-color', '#34A853')
-        .attr('stop-opacity', 0.1);
-
-    svg.append('g')
-        .append('path')
-        .attr('id', 'speedArea')
-        .data([speedMeasurements.value])
-        .attr('fill', 'url(#speed-gradient)')
-        .attr('stroke', '#34A853') // Updated color to match
-        .attr('stroke-width', 0.5)
-        .attr('d', speedArea)
-        .attr('transform', `translate(${margin.left}, 0)`)
-        // Set initial opacity to 0 if no data
-        .style('opacity', speedMeasurements.value.length > 0 ? 1 : 0);
-
-    svg.append('path')
-        .attr('id', 'tempArea')
-        .data([tempMeasurements.value])
-        .attr('fill', 'url(#temperature-gradient)')
-        .attr('stroke', '#4285F4') // Updated color to match
-        .attr('stroke-width', 0.5)
-        .attr('d', d => area(d))
-        .attr('transform', `translate(${margin.left}, 0)`)
-        // Set initial opacity to 0 if no data
-        .style('opacity', tempMeasurements.value.length > 0 ? 1 : 0)
-        .on('mouseover', function (event, d) {
-            // Check if there's data before showing tooltip
-            if (tempMeasurements.value.length === 0) return;
-            
-            d3.select("div.chart-tooltip")
-                .style('opacity', 1)
-                .style('left', `${event.pageX + 10}px`)
-                .style('top', `${event.pageY - 10}px`);
-        })
-        .on('mouseout', function (event, d) {
-            d3.select("div.chart-tooltip")
-                .style('opacity', 0);
-        })
-        .on('mousemove', function (event, d) {
-            // Check if there's data before updating tooltip
-            if (tempMeasurements.value.length === 0 || speedMeasurements.value.length === 0) return;
-            
-            const mouseX = d3.pointer(event)[0];
-            const mouseTime = xAxis.invert(mouseX);
-            const i = d3.bisectLeft(tempMeasurements.value.map(d => d._time), mouseTime);
-            const tempDataPoint = tempMeasurements.value[i];
-            const j = d3.bisectLeft(speedMeasurements.value.map(d => d._time), mouseTime);
-            const speedDataPoint = speedMeasurements.value[j];
-            
-            // Additional check to ensure we have valid data points
-            if (!tempDataPoint || !speedDataPoint) return;
-            
-            d3.select("div.chart-tooltip")
-                .style('opacity', 1)
-                .style('left', `${event.pageX}px`)
-                .style('top', `${event.pageY}px`)
-                .html(`<div style="margin-bottom: 4px; font-weight: bold;">
-                  ${new Date(tempDataPoint._time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 3px;">
-                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #4285F4; margin-right: 6px; border-radius: 50%;"></span>
-                  <span style="color: #4285F4; font-weight: 500;">Temperature:</span> 
-                  <span style="margin-left: 4px;">${Math.round(tempDataPoint._value * 10) / 10}°C</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #34A853; margin-right: 6px; border-radius: 50%;"></span>
-                  <span style="color: #34A853; font-weight: 500;">Wind Speed:</span> 
-                  <span style="margin-left: 4px;">${Math.round(speedDataPoint._value * 10) / 10} kts</span>
-                </div>`);
-        });
-
-    // Add a subtle background for the chart area
-    svg.append('rect')
-        .attr('x', margin.left)
-        .attr('y', margin.top)
-        .attr('width', width - margin.left - margin.right)
-        .attr('height', height - margin.top - margin.bottom)
-        .attr('fill', '#f8f9fa')
-        .attr('opacity', 0.3);
-
-    // Left Y-axis for temperature with improved styling
-    svg.append('g')
-        .attr('transform', `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(yAxis).tickValues([0, 5, 10, 15, 20, 25, 30, 35, 40]).tickSize(3).tickSizeOuter(0).tickFormat(d => `${d}°C`))
-        .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', '#666'))
-        .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', '#666'))
-        .call(g => g.selectAll('.tick line').clone()
-            .attr('stroke-opacity', 0.15)
-            .attr('stroke-dasharray', '2,2')
-            .attr('stroke-width', 0.7)
-            .attr('x2', width - margin.left - margin.right))
-        .selectAll('text')
-        .style('font-size', '7px')
-        .style('fill', '#4285F4')
-        .style('font-weight', 500);
-
-    // Right Y-axis for speed with improved styling
-    svg.append('g')
-        .attr('transform', `translate(${width - margin.right},0)`)
-        .call(d3.axisRight(y2Axis).tickValues([0, 5, 10, 15, 20]).tickSize(3).tickSizeOuter(0).ticks(5).tickFormat(d => `${d}kts`))
-        .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', '#666'))
-        .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', '#666'))
-        .selectAll('text')
-        .style('font-size', '7px')
-        .style('fill', '#34A853')
-        .style('font-weight', 500);
-
-    // Add a chart title
-    svg.append('text')
-        .attr('x', width / 2)
-        .attr('y', margin.top / 2)
-        .attr('text-anchor', 'middle')
-        .style('font-size', '9px')
-        .style('font-weight', 'bold')
-        .style('fill', '#666')
-        .text('24-Hour Measurements');
-        
-    // Add invisible overlay rectangle for better mouse interaction across the entire chart
-    svg.append('rect')
-        .attr('class', 'overlay')
-        .attr('width', width - margin.left - margin.right)
-        .attr('height', height - margin.top - margin.bottom)
-        .attr('transform', `translate(${margin.left}, ${margin.top})`)
-        .style('fill', 'transparent')
-        .style('pointer-events', 'all')
-        .on('mouseover', function(event) {
-            // Only show tooltip if we have data
-            if (tempMeasurements.value.length === 0 || speedMeasurements.value.length === 0) return;
-            d3.select("div.chart-tooltip").style('opacity', 1);
-        })
-        .on('mouseout', function() {
-            d3.select("div.chart-tooltip").style('opacity', 0);
-        })
-        .on('mousemove', function(event) {
-            // Only update tooltip if we have data
-            if (tempMeasurements.value.length === 0 || speedMeasurements.value.length === 0) return;
-            
-            const mouseX = d3.pointer(event)[0];
-            const mouseTime = xAxis.invert(mouseX);
-            
-            // Find closest data points
-            const i = d3.bisectLeft(tempMeasurements.value.map(d => d._time), mouseTime);
-            const tempDataPoint = i < tempMeasurements.value.length ? tempMeasurements.value[i] : null;
-            
-            const j = d3.bisectLeft(speedMeasurements.value.map(d => d._time), mouseTime);
-            const speedDataPoint = j < speedMeasurements.value.length ? speedMeasurements.value[j] : null;
-            
-            // Return if we don't have valid data points
-            if (!tempDataPoint || !speedDataPoint) return;
-            
-            // Update tooltip position and content
-            d3.select("div.chart-tooltip")
-                .style('opacity', 1)
-                .style('left', `${event.pageX + 10}px`)
-                .style('top', `${event.pageY - 10}px`)
-                .html(`<div style="margin-bottom: 4px; font-weight: bold;">
-                  ${new Date(tempDataPoint._time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 3px;">
-                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #4285F4; margin-right: 6px; border-radius: 50%;"></span>
-                  <span style="color: #4285F4; font-weight: 500;">Temperature:</span> 
-                  <span style="margin-left: 4px;">${Math.round(tempDataPoint._value * 10) / 10}°C</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                  <span style="display: inline-block; width: 8px; height: 8px; background-color: #34A853; margin-right: 6px; border-radius: 50%;"></span>
-                  <span style="color: #34A853; font-weight: 500;">Wind Speed:</span> 
-                  <span style="margin-left: 4px;">${Math.round(speedDataPoint._value * 10) / 10} kts</span>
-                </div>`);
-        });
-
-    // Add legend
-    const legend = svg.append('g')
-        .attr('transform', `translate(${margin.left + 10}, ${margin.top + 10})`);
-        
-    // Temperature legend
-    legend.append('rect')
-        .attr('width', 10)
-        .attr('height', 5)
-        .attr('fill', '#4285F4');
-        
-    legend.append('text')
-        .attr('x', 15)
-        .attr('y', 5)
-        .style('font-size', '6px')
-        .style('fill', '#4285F4')
-        .text('Temperature');
-        
-    // Speed legend
-    legend.append('rect')
-        .attr('width', 10)
-        .attr('height', 5)
-        .attr('fill', '#34A853')
-        .attr('transform', 'translate(70, 0)');
-        
-    legend.append('text')
-        .attr('x', 85)
-        .attr('y', 5)
-        .style('font-size', '6px')
-        .style('fill', '#34A853')
-        .text('Wind Speed');
-
-    // Improved X-axis styling
-    svg.append('g')
-        .attr('id', 'xAxis')
-        .attr('transform', `translate(${margin.left}, ${height - margin.bottom})`)
-        .call(d3.axisBottom(xAxis).tickSize(2).tickSizeOuter(0).ticks(d3.timeHour.every(2)).tickFormat(d3.timeFormat('%H:%M')))
-        .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', '#666'))
-        .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', '#666'))
-        .call(g => g.selectAll('.tick text').style('font-size', '7px'))
-        .selectAll('text')
-        .attr('transform', 'translate(-5, 3) rotate(-45)')
-        .style('text-anchor', 'end')
-        .style('fill', '#666');
-        
-    // Check if we have data initially
-    if (measurements.value.length === 0) {
-        // Add a "No data available" message
-        svg.append('text')
-            .attr('id', 'no-data-message')
-            .attr('x', width / 2)
-            .attr('y', height / 2)
-            .attr('text-anchor', 'middle')
-            .style('font-size', '12px')
-            .style('font-weight', 'bold')
-            .style('fill', '#888')
-            .text('No measurement data available');
+    for await (const { values, tableMeta } of queryApi.iterateRows(query)) {
+      const o = tableMeta.toObject(values);
+      o._time = new Date(o._time);
+      measurements.value.push(o);
     }
+  } catch (error) {
+    console.error('Error fetching chart data:', error);
+  }
+}
 
-    // Remove any existing tooltip first to prevent duplicates
-    d3.selectAll('div.chart-tooltip').remove();
+// Chart initialization and setup
+function initializeChart() {
+  setupBaseChart();
+  setupScales();
+  setupGenerators();
+  createChartElements();
+  updateDataDisplay();
+}
+
+function setupBaseChart() {
+  const { width, height } = CHART_CONFIG;
+  
+  // Create the base SVG element
+  chartElements.value.svg = d3.select(`.${props.id}`)
+    .attr('width', "100%")
+    .attr('height', "100%")
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
     
-    // Create an enhanced tooltip div - make sure it has a unique class
-    d3.select('body').append('div')
-        .attr('class', 'chart-tooltip')
-        .style('opacity', 0)
-        .style('position', 'absolute')
-        .style('background-color', 'rgba(255,255,255,0.9)')
-        .style('border', '1px solid #ddd')
-        .style('box-shadow', '0 2px 8px rgba(0,0,0,0.15)')
-        .style('padding', '8px 12px')
-        .style('border-radius', '4px')
-        .style('font-size', '11px')
-        .style('font-weight', '500')
-        .style('color', '#333')
-        .style('pointer-events', 'none')
-        .style('z-index', '1000') // Ensure it's above other elements
-        .style('transition', 'opacity 0.2s');
+  // Create tooltip
+  chartElements.value.tooltip = createTooltipElement(d3);
+}
+
+function setupScales() {
+  const { width, height, margin, tempMaxScale, speedMaxScale } = CHART_CONFIG;
+  
+  // X-axis time scale
+  scales.value.x = d3.scaleUtc()
+    .range([0, width - margin.left - margin.right]);
+    
+  // Update domain based on data or fallback to 24h
+  updateTimeDomain(scales.value.x, tempMeasurements.value);
+  
+  // Y-axis scales
+  scales.value.y = d3.scaleLinear()
+    .domain([0, tempMaxScale])
+    .range([height - margin.bottom, 0]);
+    
+  scales.value.y2 = d3.scaleLinear()
+    .domain([0, speedMaxScale])
+    .range([height - margin.bottom, 0]);
+}
+
+function setupGenerators() {
+  const { x } = scales.value;
+  const { y } = scales.value;
+  const { y2 } = scales.value;
+  
+  // Line generators
+  generators.value.line = d3.line()
+    .x(d => x(d._time))
+    .y(d => y(d._value))
+    .defined(d => d && d._time && d._value != null);
+    
+  generators.value.speedLine = d3.line()
+    .x(d => x(d._time))
+    .y(d => y2(d._value))
+    .defined(d => d && d._time && d._value != null);
+    
+  // Area generators
+  generators.value.area = d3.area()
+    .x(d => x(d._time))
+    .y0(y(0))
+    .y1(d => y(d._value))
+    .defined(d => d && d._time && d._value != null)
+    .curve(d3.curveBasis);
+    
+  generators.value.speedArea = d3.area()
+    .x(d => x(d._time))
+    .y0(y2(0))
+    .y1(d => y2(d._value))
+    .defined(d => d && d._time && d._value != null)
+    .curve(d3.curveBasis);
+}
+
+function createChartElements() {
+  const svg = chartElements.value.svg;
+  const { margin, width, height } = CHART_CONFIG;
+  
+  // Add chart background
+  svg.append('rect')
+    .attr('x', margin.left)
+    .attr('y', margin.top)
+    .attr('width', width - margin.left - margin.right)
+    .attr('height', height - margin.top - margin.bottom)
+    .attr('fill', CHART_COLORS.background)
+    .attr('opacity', 0.3);
+    
+  // Create gradients
+  const defs = svg.append('defs');
+  createGradients(defs);
+  
+  // Create chart title
+  svg.append('text')
+    .attr('x', width / 2)
+    .attr('y', margin.top / 2)
+    .attr('text-anchor', 'middle')
+    .style('font-size', '9px')
+    .style('font-weight', 'bold')
+    .style('fill', CHART_COLORS.text)
+    .text('24-Hour Measurements');
+    
+  // Create the areas for data
+  createDataAreas();
+  
+  // Create axes
+  createAxes();
+  
+  // Create legend
+  createLegend(svg, margin);
+  
+  // Create overlay for mouse interaction
+  createOverlay();
+  
+  // Check for no data
+  updateNoDataMessage();
+}
+
+function createDataAreas() {
+  const svg = chartElements.value.svg;
+  const { margin } = CHART_CONFIG;
+  
+  // Create speed area
+  chartElements.value.speedPath = svg.append('g')
+    .append('path')
+    .attr('id', 'speedArea')
+    .data([speedMeasurements.value])
+    .attr('fill', 'url(#speed-gradient)')
+    .attr('stroke', CHART_COLORS.windSpeed)
+    .attr('stroke-width', 0.5)
+    .attr('d', generators.value.speedArea)
+    .attr('transform', `translate(${margin.left}, 0)`)
+    .style('opacity', speedMeasurements.value.length > 0 ? 1 : 0);
+    
+  // Create temperature area
+  chartElements.value.tempPath = svg.append('path')
+    .attr('id', 'tempArea')
+    .data([tempMeasurements.value])
+    .attr('fill', 'url(#temperature-gradient)')
+    .attr('stroke', CHART_COLORS.temperature)
+    .attr('stroke-width', 0.5)
+    .attr('d', d => generators.value.area(d))
+    .attr('transform', `translate(${margin.left}, 0)`)
+    .style('opacity', tempMeasurements.value.length > 0 ? 1 : 0);
+}
+
+function createAxes() {
+  const svg = chartElements.value.svg;
+  const { margin, width, height } = CHART_CONFIG;
+  const { x, y, y2 } = scales.value;
+  
+  // Create Y-axis for temperature
+  svg.append('g')
+    .attr('transform', `translate(${margin.left}, 0)`)
+    .call(d3.axisLeft(y)
+      .tickValues([0, 5, 10, 15, 20, 25, 30, 35, 40])
+      .tickSize(3)
+      .tickSizeOuter(0)
+      .tickFormat(d => `${d}°C`))
+    .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .call(g => g.selectAll('.tick line').clone()
+      .attr('stroke-opacity', 0.15)
+      .attr('stroke-dasharray', '2,2')
+      .attr('stroke-width', 0.7)
+      .attr('x2', width - margin.left - margin.right))
+    .selectAll('text')
+    .style('font-size', '7px')
+    .style('fill', CHART_COLORS.temperature)
+    .style('font-weight', 500);
+    
+  // Create Y-axis for speed
+  svg.append('g')
+    .attr('transform', `translate(${width - margin.right},0)`)
+    .call(d3.axisRight(y2)
+      .tickValues([0, 5, 10, 15, 20])
+      .tickSize(3)
+      .tickSizeOuter(0)
+      .ticks(5)
+      .tickFormat(d => `${d}kts`))
+    .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .selectAll('text')
+    .style('font-size', '7px')
+    .style('fill', CHART_COLORS.windSpeed)
+    .style('font-weight', 500);
+    
+  // Create X-axis
+  chartElements.value.xAxis = svg.append('g')
+    .attr('id', 'xAxis')
+    .attr('transform', `translate(${margin.left}, ${height - margin.bottom})`)
+    .call(d3.axisBottom(x)
+      .tickSize(2)
+      .tickSizeOuter(0)
+      .ticks(d3.timeHour.every(2))
+      .tickFormat(d3.timeFormat('%H:%M')))
+    .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .call(g => g.selectAll('.tick text').style('font-size', '7px'));
+    
+  // Style the x-axis labels
+  chartElements.value.xAxis.selectAll('text')
+    .attr('transform', 'translate(-5, 3) rotate(-45)')
+    .style('text-anchor', 'end')
+    .style('fill', CHART_COLORS.text);
+}
+
+function createOverlay() {
+  const svg = chartElements.value.svg;
+  const { margin, width, height } = CHART_CONFIG;
+  const { x } = scales.value;
+  
+  // Create a transparent overlay for mouse events
+  chartElements.value.overlay = svg.append('rect')
+    .attr('class', 'overlay')
+    .attr('width', width - margin.left - margin.right)
+    .attr('height', height - margin.top - margin.bottom)
+    .attr('transform', `translate(${margin.left}, ${margin.top})`)
+    .style('fill', 'transparent')
+    .style('pointer-events', 'all');
+    
+  // Add mouse event handlers
+  chartElements.value.overlay
+    .on('mouseover', handleMouseOver)
+    .on('mouseout', handleMouseOut)
+    .on('mousemove', handleMouseMove);
+    
+  function handleMouseOver() {
+    if (!hasData.value) return;
+    chartElements.value.tooltip.style('opacity', 1);
+  }
+  
+  function handleMouseOut() {
+    chartElements.value.tooltip.style('opacity', 0);
+  }
+  
+  function handleMouseMove(event) {
+    if (!hasData.value) return;
+    
+    const mouseX = d3.pointer(event)[0];
+    const mouseTime = x.invert(mouseX);
+    
+    // Find closest data points
+    const tempDataPoint = findClosestDataPoint(tempMeasurements.value, mouseTime);
+    const speedDataPoint = findClosestDataPoint(speedMeasurements.value, mouseTime);
+    
+    // Return if we don't have valid data points
+    if (!tempDataPoint || !speedDataPoint) return;
+    
+    // Update tooltip position and content
+    chartElements.value.tooltip
+      .style('opacity', 1)
+      .style('left', `${event.pageX + 10}px`)
+      .style('top', `${event.pageY - 10}px`)
+      .html(createTooltipContent(tempDataPoint, speedDataPoint));
+  }
+}
+
+function updateNoDataMessage() {
+  const svg = chartElements.value.svg;
+  const { width, height } = CHART_CONFIG;
+  
+  // Remove existing message if any
+  if (chartElements.value.noDataMessage) {
+    chartElements.value.noDataMessage.remove();
+    chartElements.value.noDataMessage = null;
+  }
+  
+  // Add message if no data
+  if (!hasData.value) {
+    chartElements.value.noDataMessage = addNoDataMessage(svg, width, height);
+  }
+}
+
+function setupDataRefresh() {
+  dataRefreshInterval = setInterval(async () => {
+    await fetchData();
+    updateChart();
+  }, CHART_CONFIG.refreshInterval);
 }
 
 function updateChart() {
-    // Handle empty data case by setting a default domain for x-axis
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    // Use actual data timespan if available, otherwise use last 24h
-    xAxis.domain(
-        measurements.value.length > 0 
-            ? d3.extent(measurements.value, d => d._time)
-            : [twentyFourHoursAgo, now]
-    );
-    
-    d3.select('#xAxis')
-        .call(d3.axisBottom(xAxis).tickSize(2).tickSizeOuter(0).ticks(d3.timeHour.every(2)).tickFormat(d3.timeFormat('%H:%M')))
-        .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', '#666'))
-        .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', '#666'))
-        .call(g => g.selectAll('.tick text').style('font-size', '7px'))
-        .selectAll('text')
-        .attr('transform', 'translate(-5, 3) rotate(-45)')
-        .style('text-anchor', 'end')
-        .style('fill', '#666');
+  updateScales();
+  updateDataDisplay();
+  updateAxes();
+  updateNoDataMessage();
+}
 
-    // Check if we have data
-    if (measurements.value.length === 0) {
-        // Remove any existing no-data message first
-        d3.select('#no-data-message').remove();
-        
-        // Add a "No data available" message
-        const svg = d3.select(`.${props.id}`);
-        svg.append('text')
-            .attr('id', 'no-data-message')
-            .attr('x', width / 2)
-            .attr('y', height / 2)
-            .attr('text-anchor', 'middle')
-            .style('font-size', '12px')
-            .style('font-weight', 'bold')
-            .style('fill', '#888')
-            .text('No measurement data available');
-    } else {
-        // Remove the no-data message if it exists
-        d3.select('#no-data-message').remove();
-    }
+function updateScales() {
+  // Update x-axis domain based on data
+  updateTimeDomain(scales.value.x, measurements.value);
+}
 
-    // Update the temperature area
-    d3.select('#tempArea')
-        .data([tempMeasurements.value])
-        .join('path')
-        .attr('d', d => area(d))
-        .style('opacity', tempMeasurements.value.length > 0 ? 1 : 0);
+function updateDataDisplay() {
+  // Update temperature area
+  chartElements.value.tempPath
+    .data([tempMeasurements.value])
+    .join('path')
+    .attr('d', d => generators.value.area(d))
+    .style('opacity', tempMeasurements.value.length > 0 ? 1 : 0);
 
-    // Update the speed area
-    d3.selectAll('#speedArea')
-        .data([speedMeasurements.value])
-        .join('path')
-        .attr('d', d => speedArea(d))
-        .style('opacity', speedMeasurements.value.length > 0 ? 1 : 0);
+  // Update speed area
+  chartElements.value.speedPath
+    .data([speedMeasurements.value])
+    .join('path')
+    .attr('d', d => generators.value.speedArea(d))
+    .style('opacity', speedMeasurements.value.length > 0 ? 1 : 0);
+}
+
+function updateAxes() {
+  const { x } = scales.value;
+  
+  // Update x-axis
+  chartElements.value.xAxis
+    .call(d3.axisBottom(x)
+      .tickSize(2)
+      .tickSizeOuter(0)
+      .ticks(d3.timeHour.every(2))
+      .tickFormat(d3.timeFormat('%H:%M')))
+    .call(g => g.select('.domain').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .call(g => g.selectAll('.tick line').style('stroke-width', 0.5).style('stroke', CHART_COLORS.grid))
+    .call(g => g.selectAll('.tick text').style('font-size', '7px'))
+    .selectAll('text')
+    .attr('transform', 'translate(-5, 3) rotate(-45)')
+    .style('text-anchor', 'end')
+    .style('fill', CHART_COLORS.text);
+}
+
+function cleanupResources() {
+  // Clear data refresh interval
+  if (dataRefreshInterval) {
+    clearInterval(dataRefreshInterval);
+  }
+  
+  // Remove tooltip to prevent duplicates when component is remounted
+  if (chartElements.value.tooltip) {
+    chartElements.value.tooltip.remove();
+  }
 }
 </script>
 
 <style lang="scss">
 body.body--dark {
-    .chart-tooltip {
-        background-color: rgba(40, 44, 52, 0.95) !important;
-        color: #e0e0e0 !important;
-        border-color: #555 !important;
+  .chart-tooltip {
+    background-color: rgba(40, 44, 52, 0.95) !important;
+    color: #e0e0e0 !important;
+    border-color: #555 !important;
+  }
+  
+  svg {
+    text {
+      fill: #e0e0e0 !important;
     }
     
-    svg {
-        text {
-            fill: #e0e0e0 !important;
-        }
-        
-        .domain, .tick line {
-            stroke: #666 !important;
-        }
-        
-        rect[fill="#f8f9fa"] {
-            fill: #2d3748 !important;
-        }
+    .domain, .tick line {
+      stroke: #666 !important;
     }
+    
+    rect[fill="#f8f9fa"] {
+      fill: #2d3748 !important;
+    }
+  }
 }
 
 body.body--light {
-    .chart-tooltip {
-        background-color: rgba(255, 255, 255, 0.95) !important;
-    }
+  .chart-tooltip {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
 }
 
 /* Global tooltip styles to ensure visibility */
 .chart-tooltip {
-    position: absolute;
-    pointer-events: none;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
-    z-index: 9999;
-    transition: opacity 0.2s;
+  position: absolute;
+  pointer-events: none;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  z-index: 9999;
+  transition: opacity 0.2s;
 }
 
 // Responsive adjustments for the chart
 @media (max-width: 600px) {
-    svg text {
-        font-size: 6px !important;
-    }
-    
-    .chart-tooltip {
-        font-size: 10px !important;
-        padding: 6px 10px !important;
-    }
+  svg text {
+    font-size: 6px !important;
+  }
+  
+  .chart-tooltip {
+    font-size: 10px !important;
+    padding: 6px 10px !important;
+  }
 }
 </style>
