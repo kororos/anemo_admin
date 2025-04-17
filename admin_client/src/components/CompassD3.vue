@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUpdate, ref } from 'vue';
+import { onMounted, onBeforeUpdate, ref, computed } from 'vue';
 import * as d3 from 'd3';
 
 const props = defineProps({
@@ -14,6 +14,14 @@ const props = defineProps({
     radius: Number,
     id: String,
     arrowAngle: Number,
+    innerRadius: {
+        type: Number,
+        default: 50
+    },
+    outerRadius: {
+        type: Number,
+        default: 55
+    },
     arcStart: {
         type: Number,
         default: 90
@@ -24,9 +32,9 @@ const props = defineProps({
     }
 });
 
-const arcGenerator = d3.arc()
-    .innerRadius(props.innerRadius ? props.innerRadius : 50)
-    .outerRadius(props.outerRadius ? props.outerRadius : 55);
+const arcGenerator = computed(() => d3.arc()
+    .innerRadius(props.innerRadius)
+    .outerRadius(props.outerRadius));
 
 function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
@@ -71,11 +79,12 @@ const scales = ({ arcStart, arcEnd  }) => {
 
 };
 
-const scaleObject = scales({ arcStart: props.arcStart, arcEnd: props.arcEnd });
-
-const colorScale = d3.scaleLinear()
-    .domain(scaleObject.domain)
-    .range(scaleObject.range);
+const colorScale = computed(() => {
+    const scaleObject = scales({ arcStart: props.arcStart, arcEnd: props.arcEnd });
+    return d3.scaleLinear()
+        .domain(scaleObject.domain)
+        .range(scaleObject.range);
+});
 
 
 onMounted(() => {
@@ -95,7 +104,7 @@ onMounted(() => {
             endAngle: degreesToRadians(props.arcEnd)
         })
         .style('fill', 'green')
-        .attr('d', arcGenerator);
+        .attr('d', arcGenerator.value);
 
     d3.select('svg')
         .append('text')
@@ -220,10 +229,10 @@ onMounted(() => {
         .attr('transform', 'translate(120, 70) scale(0.04)');
 
     d3.selectAll('#kite-group path')
-        .style('fill', colorScale(normalizeAngle(props.arrowAngle)));
+        .style('fill', colorScale.value(normalizeAngle(props.arrowAngle)));
 
     d3.selectAll('#kite-group circle')
-        .style('fill', colorScale(normalizeAngle(props.arrowAngle)));
+        .style('fill', colorScale.value(normalizeAngle(props.arrowAngle)));
 });
 
 onBeforeUpdate(() => {
@@ -238,12 +247,12 @@ onBeforeUpdate(() => {
     d3.selectAll('#kite-group path')
         .transition()
         .duration(800)
-        .style('fill', colorScale(normalizeAngle(arrowAngle)));
+        .style('fill', colorScale.value(normalizeAngle(arrowAngle)));
 
     d3.selectAll('#kite-group circle')
         .transition()
         .duration(800)
-        .style('fill', colorScale(normalizeAngle(arrowAngle)));
+        .style('fill', colorScale.value(normalizeAngle(arrowAngle)));
 
     d3.select('#angle-text')
         .transition()
