@@ -1,6 +1,6 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+  <q-layout view="lHh Lpr lFf" :class="{ 'bg-grey-9': $q.dark.isActive }">
+    <q-header elevated :class="$q.dark.isActive ? 'bg-dark' : 'bg-primary'">
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
@@ -8,10 +8,21 @@
           Anemometer
         </q-toolbar-title>
         <div>
-          <web-socket-state-icon class="q-pr-md" />
+          <web-socket-state-icon class="q-pr-md" size="md" show-text />
         </div>
         <div>Quasar v{{ $q.version }}</div>
-        <div> <q-toggle v-model="darkMode" color="yellow" label="Dark Mode" /> </div>
+        
+        <!-- Dark mode toggle switch -->
+        <q-toggle
+          v-model="darkMode"
+          :color="darkMode ? 'deep-orange' : 'yellow'" 
+          :icon="darkMode ? 'light_mode' : 'dark_mode'"
+          :icon-color="darkMode ? 'white' : 'black'"
+          @update:model-value="toggleDarkMode"
+        >
+          <q-tooltip>Toggle Dark Mode</q-tooltip>
+        </q-toggle>
+        
         <div><q-btn flat round dense icon="logout" aria-label="Logout" @click="authStore.logout()" />
         </div>
       </q-toolbar>
@@ -45,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar'
 
 import EssentialLink from 'components/EssentialLink.vue';
@@ -122,9 +133,28 @@ const essentialLinks = ref(linksList);
 const darkMode = ref(false);
 const $q = useQuasar();
 const authStore = useAuthStore();
-watch(darkMode, (value) => {
+// Function to toggle dark mode
+const toggleDarkMode = (value) => {
   $q.dark.set(value);
-})
+  // Store preference in localStorage
+  localStorage.setItem('darkMode', value.toString());
+};
+
+// Initialize dark mode on component mount
+onMounted(() => {
+  // Initialize dark mode from localStorage
+  const savedDarkMode = localStorage.getItem('darkMode');
+  if (savedDarkMode !== null) {
+    const isDarkMode = savedDarkMode === 'true';
+    darkMode.value = isDarkMode;
+    $q.dark.set(isDarkMode);
+  } else {
+    // Check for system preference if no saved preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    darkMode.value = prefersDark;
+    $q.dark.set(prefersDark);
+  }
+});
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value

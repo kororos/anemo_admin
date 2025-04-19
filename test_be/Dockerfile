@@ -1,7 +1,7 @@
 # Dockerfile for test_be node application
 
 # Use a base image
-FROM node:alpine
+FROM node:lts-alpine
 
 # Set the working directory
 WORKDIR /app

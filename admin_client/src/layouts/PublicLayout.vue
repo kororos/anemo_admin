@@ -11,8 +11,9 @@
         <!-- Dark mode toggle switch -->
         <q-toggle
           v-model="darkMode"
-          color="yellow"
-          icon="dark_mode"
+          :color="darkMode ? 'deep-orange' : 'yellow'" 
+          :icon="darkMode ? 'light_mode' : 'dark_mode'"
+          :icon-color="darkMode ? 'white' : 'black'"
           @update:model-value="toggleDarkMode"
         >
           <q-tooltip>Toggle Dark Mode</q-tooltip>
@@ -30,6 +31,8 @@
 import { ref, onMounted, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { Dark } from 'quasar';
+import { useDevicesStore } from 'src/stores/devicesStore';
+import { useWebSocketStore } from 'src/stores/webSocketStore';
 
 const $q = useQuasar();
 const darkMode = ref(false);
@@ -41,8 +44,13 @@ const toggleDarkMode = (value) => {
   localStorage.setItem('darkMode', value.toString());
 };
 
-// Initialize dark mode from storage on component mount
-onMounted(() => {
+// Get store references
+const devicesStore = useDevicesStore();
+const webSocketStore = useWebSocketStore();
+
+// Initialize dark mode and stores on component mount
+onMounted(async () => {
+  // Initialize dark mode
   const savedDarkMode = localStorage.getItem('darkMode');
   if (savedDarkMode !== null) {
     const isDarkMode = savedDarkMode === 'true';
@@ -53,6 +61,14 @@ onMounted(() => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     darkMode.value = prefersDark;
     Dark.set(prefersDark);
+  }
+  
+  // Initialize WebSocket
+  webSocketStore.initializeWebSocket();
+  
+  // Initialize devices data
+  if (devicesStore.devices.length === 0) {
+    await devicesStore.fetchDevices();
   }
 });
 </script>

@@ -21,7 +21,23 @@ export default (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     lastConnection: DataTypes.DATE,
     hwVersion: DataTypes.STRING,
-    fwVersion: DataTypes.STRING
+    fwVersion: DataTypes.STRING,
+    arcStart: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 0,
+        max: 360
+      }
+    },
+    arcEnd: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 0,
+        max: 360
+      }
+    }
   }, {
     sequelize,
     modelName: 'Device',

@@ -9,6 +9,7 @@
           :options="combinedDevices" 
           label="Select Device" 
           option-label="label"
+          :loading="devicesStore.isLoading"
         >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
@@ -46,7 +47,12 @@
         <q-card-section>
           <div class="text-center text-h6 text-no-wrap">Wind Direction</div>
         </q-card-section>
-        <CompassD3 id="compass" :arrowAngle="direction" />
+        <CompassD3 
+          id="compass" 
+          :arrowAngle="direction" 
+          :arcStart="arcSettings.arcStart" 
+          :arcEnd="arcSettings.arcEnd" 
+        />
       </q-card>
       <q-card class="col-xs-12 col-sm q-mr-md q-mb-md">
         <q-card-section>
@@ -96,6 +102,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useWebSocketStore } from "src/stores/webSocketStore";
+import { useDevicesStore } from "src/stores/devicesStore";
 import axios from 'axios';
 import GaugeD3 from 'src/components/GaugeD3.vue';
 import CompassD3 from 'src/components/CompassD3.vue';
@@ -128,16 +135,17 @@ const props = defineProps({
   }
 });
 
-// Note that WebSocketStore has been initizaed in the boot/authBoot.js file
+// Get stores
 const wsStore = useWebSocketStore();
+const devicesStore = useDevicesStore();
 
+// Measurements data
 const speed = ref(0);
 const temperature = ref(0);
 const humidity = ref(0);
 const direction = ref(0);
 const firmwareVersion = ref('Unknown');
 const lastUpdateTimestamp = ref('Unknown');
-const apiDevices = ref([]);
 const selectedDevice = ref(null);
 let intervalId = null;
 
@@ -154,6 +162,53 @@ const isDeviceSelected = computed(() => {
   return !!props.fixedDeviceId || !!selectedDevice.value;
 });
 
+// Get arc settings from the DevicesStore
+const arcSettings = computed(() => {
+  // If we have a selected device with a MAC address, use it to look up arc settings
+  if (selectedDevice.value?.mac) {
+    console.log('Using MAC address for arc settings:', selectedDevice.value.mac);
+    // Look up device by MAC address in the devices store
+    const device = devicesStore.getDeviceByMac(selectedDevice.value.mac);
+    if (device) {
+      console.log('Found device by MAC in devices store:', device.macAddress);
+      return {
+        arcStart: device.arcStart ?? 0,
+        arcEnd: device.arcEnd ?? 180
+      };
+    }
+  }
+  
+  // If we have a fixed deviceId, try to find a corresponding device
+  const deviceId = selectedDeviceId.value;
+  if (deviceId) {
+    // First, check if it's a MAC address by looking for colons
+    if (deviceId.includes(':')) {
+      const device = devicesStore.getDeviceByMac(deviceId);
+      if (device) {
+        console.log('Found device by MAC in devices store from deviceId:', deviceId);
+        return {
+          arcStart: device.arcStart ?? 0,
+          arcEnd: device.arcEnd ?? 180
+        };
+      }
+    }
+    
+    // Otherwise, try to find by client ID
+    const device = devicesStore.getDeviceById(deviceId);
+    if (device) {
+      console.log('Found device by ID in devices store:', deviceId);
+      return {
+        arcStart: device.arcStart ?? 0,
+        arcEnd: device.arcEnd ?? 180
+      };
+    }
+  }
+  
+  // Default values if no matching device is found
+  console.log('No matching device found, using default arc values');
+  return { arcStart: 0, arcEnd: 180 };
+});
+
 // Computed property to combine WebSocket and API devices
 const combinedDevices = computed(() => {
   // Get WebSocket devices
@@ -164,69 +219,50 @@ const combinedDevices = computed(() => {
       mac: client.mac,
       data: client.data,
       connectionType: 'websocket',
-      // Use swVersion property from WebSocket client data
       firmwareVersion: client.swVersion || 'Unknown'
     };
   });
 
-  // Get API devices (not already in WebSocket devices)
-  const uniqueApiDevices = apiDevices.value.filter(apiDevice => {
+  // Get stored devices (not already in WebSocket devices)
+  const storedDevices = devicesStore.devices.filter(device => {
     // Check if this device is already in wsDevices by matching macAddress
     return !wsDevices.some(wsDevice => 
-      wsDevice.mac === apiDevice.data?.macAddress
+      wsDevice.mac === device.macAddress
     );
-  }).map(device => ({
-    ...device,
-    connectionType: 'api'
-  }));
+  }).map(device => {
+    // Log each device as we process it
+    console.log(`Processing stored device: ${device.clientId}, MAC: ${device.macAddress}, arcStart: ${device.arcStart}, arcEnd: ${device.arcEnd}`);
+    
+    return {
+      label: device.clientId,
+      value: device.clientId,
+      mac: device.macAddress, // Add the MAC address explicitly
+      arcStart: device.arcStart, // Include arcStart directly in the dropdown item
+      arcEnd: device.arcEnd,     // Include arcEnd directly in the dropdown item
+      data: device,
+      connectionType: 'api'
+    };
+  });
 
   // Combine and return
-  return [...wsDevices, ...uniqueApiDevices];
+  return [...wsDevices, ...storedDevices];
 });
 
-// Populate the devices dropdown from the getKnownDevicesGuest endpoint
-const populateDevices = async () => {
-  try {
-    // Create a direct axios instance for guest access
-    const axiosInstance = axios.create({
-      baseURL: process.env.API_BASE_URL || "http://localhost:3000",
-      withCredentials: true,
-    });
-
-    const endpoint = props.authenticated ? '/api/getKnownDevices' : '/api/getKnownDevices';
-    const response = await axiosInstance.get(endpoint);
-    console.log('Known devices response:', response.data);
-
-    if (response.data && Array.isArray(response.data)) {
-      // Map API response to dropdown options
-      apiDevices.value = response.data.map(device => {
-        // Use clientId as the value since this is what the InfluxDB uses in the 'device' field
-        // The MQTT devices will be identified by their clientId in the database
-        return {
-          label: device.clientId,
-          // The value must match what's expected by the /api/getMeasurements endpoint
-          // Based on router.js and measurementRouter.js, it should be the clientId
-          value: device.clientId,
-          data: device,
-          connectionType: 'api'
-        }
-      });
-      console.log('Populated devices from API:', apiDevices.value);
-      
-      // If we have a fixed device ID but no selected device, try to find it
-      if ((props.fixedDeviceId || props.deviceName) && !selectedDevice.value) {
-        const deviceToFind = props.fixedDeviceId || props.deviceName;
-        const device = findDeviceByName(deviceToFind);
-        if (device) {
-          console.log('Setting selected device after API fetch:', device);
-          selectedDevice.value = device;
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching devices:', error);
-    apiDevices.value = [];
-  }
+// Format date for the Last Seen column
+const formatDateTime = (dateString) => {
+  if (!dateString) return 'Never';
+  
+  const date = new Date(dateString);
+  
+  // Format: dd-mm-yy hh:mm:ss
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear().toString().slice(-2);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
 };
 
 // Fetch measurements from WebSocket data or API
@@ -297,9 +333,6 @@ const updateMeasurementsFromWebSocket = (client) => {
   if (client.swVersion) {
     firmwareVersion.value = client.swVersion;
     lastUpdateTimestamp.value = new Date().toISOString();
-    console.log('Updated firmware version from WebSocket:', client.swVersion);
-  } else {
-    console.log('No swVersion available in client:', client);
   }
 };
 
@@ -314,13 +347,9 @@ const fetchMeasurementsFromAPI = async (deviceId) => {
           withCredentials: true,
         });
     
-    console.log(`Fetching measurements for device ID: ${deviceId}`);
-    
     const response = await axiosInstance.get('/api/getMeasurements', {
       params: { deviceId }
     });
-
-    console.log('API measurements response:', response.data);
 
     if (response.data && Array.isArray(response.data) && response.data.length > 0) {
       const data = response.data;
@@ -365,35 +394,19 @@ const fetchMeasurementsFromAPI = async (deviceId) => {
         foundVersionData = true;
       }
       
-      if (hasUpdatedAnyValue) {
-        console.log('Updated values from API:', {
-          direction: direction.value,
-          temperature: temperature.value,
-          humidity: humidity.value,
-          speed: speed.value,
-          firmwareVersion: firmwareVersion.value,
-          lastUpdateTimestamp: lastUpdateTimestamp.value
-        });
-      } else {
-        console.log('API returned data but no measurement values were updated for device:', deviceId);
-      }
-      
       // If we have measurements but no version data, set version to Unknown
       if (hasUpdatedAnyValue && !foundVersionData) {
         firmwareVersion.value = 'Unknown';
         lastUpdateTimestamp.value = 'Unknown';
-        console.log('Measurements found but no version data, setting firmware version to Unknown');
       }
     } else {
       // No data returned from API, use device data if available or set to Unknown
-      console.log('No data returned from API for device:', deviceId);
       
       // Try to get firmware version from device metadata if available
       if (selectedDevice.value?.data?.fwVersion) {
         firmwareVersion.value = selectedDevice.value.data.fwVersion;
         // Always set timestamp to Unknown if no data was returned from API
         lastUpdateTimestamp.value = 'Unknown';
-        console.log('Using firmware version from device metadata:', firmwareVersion.value);
       } else {
         // No data and no device metadata - set everything to Unknown/0
         firmwareVersion.value = 'Unknown';
@@ -404,7 +417,6 @@ const fetchMeasurementsFromAPI = async (deviceId) => {
           temperature.value = 0;
           humidity.value = 0;
           direction.value = 0;
-          console.log('No data for MQTT device, resetting all values');
         }
       }
     }
@@ -413,7 +425,6 @@ const fetchMeasurementsFromAPI = async (deviceId) => {
     // Set firmware and timestamp to Unknown for API errors
     firmwareVersion.value = 'Unknown';
     lastUpdateTimestamp.value = 'Unknown';
-    console.log('Error fetching measurements, setting firmware version to Unknown');
   }
 };
 
@@ -440,21 +451,76 @@ const resetValues = () => {
     firmwareVersion.value = 'Unknown';
     lastUpdateTimestamp.value = 'Unknown';
   }
+};
+
+// Find a device by name or MAC address
+const findDeviceByName = (deviceNameOrMac) => {
+  if (!deviceNameOrMac) return null;
   
-  console.log('Values reset:', { 
-    speed: speed.value,
-    temperature: temperature.value, 
-    humidity: humidity.value, 
-    direction: direction.value,
-    firmwareVersion: firmwareVersion.value,
-    lastUpdateTimestamp: lastUpdateTimestamp.value
-  });
+  console.log('Finding device by name/MAC:', deviceNameOrMac);
+  
+  // Check if the input looks like a MAC address (contains colons)
+  const isMacAddress = deviceNameOrMac.includes(':');
+  
+  // First try WebSocket connected devices
+  let wsDevice;
+  
+  if (isMacAddress) {
+    // If it looks like a MAC address, prioritize MAC matching
+    wsDevice = wsStore.clients.find(client => client.mac === deviceNameOrMac);
+    console.log('Searching WebSocket clients by MAC:', wsDevice ? 'Found' : 'Not found');
+  } else {
+    // Otherwise try to match by clientId or MAC
+    wsDevice = wsStore.clients.find(client => 
+      client.clientId === deviceNameOrMac || client.mac === deviceNameOrMac
+    );
+    console.log('Searching WebSocket clients by ID:', wsDevice ? 'Found' : 'Not found');
+  }
+  
+  if (wsDevice) {
+    // When returning from WebSocket, ensure we include the MAC address
+    console.log('Found device in WebSocket clients, MAC:', wsDevice.mac);
+    return {
+      label: wsDevice.clientId || wsDevice.mac,
+      value: wsDevice.uuid,
+      mac: wsDevice.mac,
+      data: wsDevice.data,
+      connectionType: 'websocket',
+      firmwareVersion: wsDevice.swVersion || 'Unknown'
+    };
+  }
+  
+  // Then try devices from the store
+  let storeDevice;
+  
+  if (isMacAddress) {
+    // If it looks like a MAC address, prioritize MAC matching
+    storeDevice = devicesStore.getDeviceByMac(deviceNameOrMac);
+    console.log('Searching devices store by MAC:', storeDevice ? 'Found' : 'Not found');
+  } else {
+    // Otherwise try to match by clientId
+    storeDevice = devicesStore.getDeviceById(deviceNameOrMac);
+    console.log('Searching devices store by ID:', storeDevice ? 'Found' : 'Not found');
+  }
+  
+  if (storeDevice) {
+    // When returning from store, ensure we include the MAC address
+    console.log('Found device in devices store, MAC:', storeDevice.macAddress);
+    return {
+      label: storeDevice.clientId,
+      value: storeDevice.clientId,
+      mac: storeDevice.macAddress, // Make sure MAC is included
+      data: storeDevice,
+      connectionType: 'api'
+    };
+  }
+  
+  console.log('Device not found by name/MAC:', deviceNameOrMac);
+  return null;
 };
 
 // Subscribe to WebSocket store updates for real-time data
 wsStore.$subscribe((mutation, state) => {
-  console.log('WebSocket store updated:', state.clients);
-  
   // If we have a fixed device ID (from router), try to find a matching WebSocket client
   if (props.fixedDeviceId) {
     const wsClient = state.clients.find(client => 
@@ -462,7 +528,6 @@ wsStore.$subscribe((mutation, state) => {
     );
     
     if (wsClient && wsClient.data && wsClient.data.sensors) {
-      console.log('Found WebSocket client matching fixedDeviceId:', wsClient);
       updateMeasurementsFromWebSocket(wsClient);
       return;
     }
@@ -476,7 +541,6 @@ wsStore.$subscribe((mutation, state) => {
     );
     
     if (wsDevice) {
-      console.log('Found device from URL parameter in WebSocket clients:', wsDevice);
       selectedDevice.value = {
         label: wsDevice.clientId || wsDevice.mac,
         value: wsDevice.uuid,
@@ -493,14 +557,10 @@ wsStore.$subscribe((mutation, state) => {
     // Find client by uuid
     const client = state.clients.find(client => client.uuid === selectedDevice.value.value);
     if (client) {
-      // Log the found client to debug
-      console.log('Found selected client in WS update:', client);
-      
       // Check for firmware version even if no sensor data yet
       if (client.swVersion) {
         firmwareVersion.value = client.swVersion;
         lastUpdateTimestamp.value = new Date().toISOString();
-        console.log('Updated firmware from WS subscription:', client.swVersion);
       }
       
       // Update sensor data if available
@@ -511,34 +571,55 @@ wsStore.$subscribe((mutation, state) => {
   }
 });
 
+// Debug log for arcSettings
+watch(() => arcSettings.value, (newSettings, oldSettings) => {
+  console.log('🔥 Arc settings changed:');
+  console.log('  New values:', newSettings);
+  console.log('  Old values:', oldSettings);
+}, { immediate: true, deep: true });
+
 // Watch for changes to the selected device
-// When changed, fetch measurements for that device
 watch(selectedDevice, (newDevice, oldDevice) => {
+  console.log('📱 Selected device changed:', newDevice?.label);
+  
   if (newDevice) {
+    console.log('Device selected from dropdown:');
+    console.log('- Label:', newDevice.label);
+    console.log('- Value:', newDevice.value);
+    console.log('- MAC Address:', newDevice.mac);
+    console.log('- Arc Start:', newDevice.arcStart);
+    console.log('- Arc End:', newDevice.arcEnd);
+    console.log('- Connection Type:', newDevice.connectionType);
+    
     // Only reset values if changing to a completely different device
-    // This prevents resetting when simply refreshing the same device
     if (!oldDevice || newDevice.value !== oldDevice.value) {
-      console.log('Device changed, resetting values before fetching new measurements');
-      
       // Always reset firmware version and timestamp when changing devices
       firmwareVersion.value = 'Unknown';
       lastUpdateTimestamp.value = 'Unknown';
       
       // Reset other values
       resetValues();
-      
-      console.log('Initial values after device change:', {
-        speed: speed.value,
-        temperature: temperature.value,
-        humidity: humidity.value,
-        direction: direction.value,
-        firmwareVersion: firmwareVersion.value,
-        lastUpdateTimestamp: lastUpdateTimestamp.value
-      });
     }
     
     // Immediately fetch measurements for the new device
     fetchMeasurements();
+    
+    // DEBUG: Log the arc settings calculation after selection
+    console.log('ARC SETTINGS CHECK after selection:');
+    const device = newDevice.mac 
+      ? devicesStore.getDeviceByMac(newDevice.mac) 
+      : devicesStore.getDeviceById(newDevice.value);
+    
+    if (device) {
+      console.log('Found device in store after selection:');
+      console.log('- ID:', device.id);
+      console.log('- ClientId:', device.clientId);
+      console.log('- MAC:', device.macAddress);
+      console.log('- Arc Start:', device.arcStart);
+      console.log('- Arc End:', device.arcEnd);
+    } else {
+      console.log('Device not found in store after selection');
+    }
   } else {
     // If no device is selected, reset all values
     resetValues();
@@ -560,88 +641,26 @@ watch(() => props.fixedDeviceId, (newId) => {
   }
 }, { immediate: true });
 
-// Find a device by name (clientId) in the available devices
-const findDeviceByName = (deviceName) => {
-  if (!deviceName) return null;
-  
-  console.log('Looking for device with name:', deviceName);
-  
-  // First try WebSocket connected devices
-  const wsDevice = wsStore.clients.find(client => 
-    client.clientId === deviceName || client.mac === deviceName
-  );
-  
-  if (wsDevice) {
-    console.log('Found device in WebSocket clients:', wsDevice);
-    return {
-      label: wsDevice.clientId || wsDevice.mac,
-      value: wsDevice.uuid,
-      mac: wsDevice.mac,
-      data: wsDevice.data,
-      connectionType: 'websocket',
-      firmwareVersion: wsDevice.swVersion || 'Unknown'
-    };
-  }
-  
-  // Then try API devices
-  const apiDevice = apiDevices.value.find(device => 
-    device.label === deviceName || device.data?.macAddress === deviceName
-  );
-  
-  if (apiDevice) {
-    console.log('Found device in API devices:', apiDevice);
-    return apiDevice;
-  }
-  
-  console.log('Device not found with name:', deviceName);
-  return null;
-};
-
-onMounted(async () => {
-  console.log('MeasurementsDisplay mounted with props:', {
-    deviceName: props.deviceName,
-    showDeviceSelector: props.showDeviceSelector,
-    fixedDeviceId: props.fixedDeviceId,
-    showMeasurementsChart: props.showMeasurementsChart,
-    authenticated: props.authenticated
-  });
-  
-  // Initialize WebSocket connection if it's not already initialized
-  wsStore.initializeWebSocket();
-
-  // Populate devices dropdown
-  if (props.showDeviceSelector) {
-    await populateDevices();
-  }
-
+onMounted(() => {
   // If we have a fixed device ID, use it
   if (props.fixedDeviceId) {
-    console.log('Using fixed device ID:', props.fixedDeviceId);
     fetchMeasurements();
   }
   // Otherwise, if we have a device name from URL, try to find and select it
   else if (props.deviceName && props.showDeviceSelector) {
-    // Wait a bit for WebSocket to initialize devices
+    // Wait a bit for WebSocket and stores to initialize
     setTimeout(() => {
       const device = findDeviceByName(props.deviceName);
       if (device) {
-        console.log('Setting selected device from URL parameter:', device);
         selectedDevice.value = device;
-      } else {
-        console.log('Device from URL parameter not found');
       }
-    }, 1000); // Give WebSocket connection time to establish
+    }, 1000);
   }
 
   // Set up interval to fetch measurements
   intervalId = setInterval(() => {
     if (props.fixedDeviceId || selectedDevice.value) {
       fetchMeasurements();
-      
-      // Every 30 seconds, refresh the device list from the API to discover new devices
-      if (props.showDeviceSelector && (Date.now() / 1000) % 30 < 5) {
-        populateDevices();
-      }
     }
   }, 5000);
 });

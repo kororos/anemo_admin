@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUpdate, ref, computed } from 'vue';
+import { onMounted, onBeforeUpdate, ref, computed, watch } from 'vue';
 import * as d3 from 'd3';
 
 const props = defineProps({
@@ -87,46 +87,76 @@ const colorScale = computed(() => {
 });
 
 
-onMounted(() => {
-    var centerX = 110; // X-coordinate of circle center
-    var centerY = 60; // Y-coordinate of circle center
-    var radius = 50;  // Radius of the circle
+const createOrUpdateArc = () => {
+    const centerX = 110; // X-coordinate of circle center
+    const centerY = 60; // Y-coordinate of circle center
+    const radius = 50;  // Radius of the circle
 
-    d3.select('svg')
+    // Select or create the SVG and set its attributes
+    const svg = d3.select('svg');
+    if (svg.attr('viewBox') === null) {
+        svg.attr('width', "100%")
+            .attr('height', "100%")
+            .attr('viewBox', '0 0 220 120')
+            .attr('preserveAspectRatio', 'xMidYMid meet');
+    }
+
+    // Update or create the arc path
+    const arcPath = svg.select('path.arc-path');
+    if (arcPath.empty()) {
+        // Create new arc path if it doesn't exist
+        svg.append('path')
+            .attr('class', 'arc-path')
+            .attr('transform', `translate(${centerX}, ${centerY})`)
+            .datum({
+                startAngle: degreesToRadians(props.arcStart),
+                endAngle: degreesToRadians(props.arcEnd)
+            })
+            .style('fill', 'green')
+            .attr('d', arcGenerator.value);
+    } else {
+        // Update existing arc path
+        arcPath.datum({
+                startAngle: degreesToRadians(props.arcStart),
+                endAngle: degreesToRadians(props.arcEnd)
+            })
+            .attr('d', arcGenerator.value);
+    }
+};
+
+onMounted(() => {
+    const centerX = 110; // X-coordinate of circle center
+    const centerY = 60; // Y-coordinate of circle center
+    const radius = 50;  // Radius of the circle
+
+    // Initialize the SVG with base elements
+    const svg = d3.select('svg')
         .attr('width', "100%")
         .attr('height', "100%")
-        .attr('viewBox', '0 00 220 120')
-        .attr('preserveAspectRatio', 'xMidYMid meet')
-        .append('path')
-        .attr('transform', `translate(${centerX}, ${centerY})`)
-        .datum({
-            startAngle: degreesToRadians(props.arcStart),
-            endAngle: degreesToRadians(props.arcEnd)
-        })
-        .style('fill', 'green')
-        .attr('d', arcGenerator.value);
+        .attr('viewBox', '0 0 220 120')
+        .attr('preserveAspectRatio', 'xMidYMid meet');
 
-    d3.select('svg')
-        .append('text')
+    // Create the arc with a class for easier selection later
+    createOrUpdateArc();
+
+    // Add text element for angle display
+    svg.append('text')
         .attr('id', 'angle-text')
         .attr('text-anchor', 'middle')
         .text(Math.round(props.arrowAngle) + '°')
         .style('font-size', '15px')
         .attr('transform', `translate (${centerX},${centerY - radius / 2})`);
 
-    d3.select('svg')
-        .append('circle')
+    // Add circle element
+    svg.append('circle')
         .attr('cx', centerX)
         .attr('cy', centerY)
         .attr('r', radius)
         .attr('fill', 'none')
-        //.style('stroke', 'black')
         .attr('stroke-width', '2');
 
-
-
+    // Create tick marks
     var numTicks = 36; // Number of ticks (360° / 30°)
-
     for (var i = 0; i < numTicks; i++) {
         var angle = (i * 10) * (Math.PI / 180); // Convert degrees to radians
         var tickLength = 10; // Length of each tick line
@@ -137,8 +167,7 @@ onMounted(() => {
         var x2 = centerX + (radius + calcTickLength / 2) * Math.cos(angle);
         var y2 = centerY + (radius + calcTickLength / 2) * Math.sin(angle);
 
-
-        const line = d3.select('svg').append("line")
+        const line = svg.append("line")
             .attr("x1", x1)
             .attr("y1", y1)
             .attr("x2", x2)
@@ -147,20 +176,15 @@ onMounted(() => {
             .attr("stroke", (i * 10) % 45 === 0 ? "red" : "black")
             .classed('longTick', calcTickLength === 15)
             .classed('shortTick', calcTickLength === 10);
-
-
-
-        // .attr('transform', `rotate(${props.arrowAngle || 0} 100 100)`)
     }
-    d3.select('svg')
-        .append('g')
+
+    // Add arrow group
+    svg.append('g')
         .attr('id', 'arrow')
         .attr('transform', `translate(${centerX}, ${centerY})`)
-        //.attr('transform', `translate(120,60)`)
         .append('g')
         .attr('id', 'rotate_group')
         .append('g')
-        //.attr('transform', `translate(${-1*centerX}, ${-1* centerY})`)
         .attr('transform', `translate(-100, -40)`)
         .append("path")
         .attr("d", "M 95 70 v -50 h -10 l 15 -15 l 15 15 h -10 v 50 z")
@@ -168,7 +192,7 @@ onMounted(() => {
         .style("fill", "green");
 
     d3.select('#rotate_group')
-        .attr('transform', 'scale(0.5)');
+        .attr('transform', `scale(0.5) rotate(${props.arrowAngle || 0})`);
 
     d3.select('#rotate_group')
         .select('g')
@@ -179,8 +203,8 @@ onMounted(() => {
         .style('fill', 'grey')
         .style('stroke', 'black');
 
-    d3.select('svg')
-        .append('g')
+    // Add kite group
+    svg.append('g')
         .attr('id', 'kite-top-group')
         .append('g')
         .attr('id', 'kite-group')
@@ -190,7 +214,6 @@ onMounted(() => {
                     8.645c11.618,15.443,27.119,45.546,30.103,98.188 c3.366,59.431-20.722,132.001-33.134, \
                     164.925c-3.729,9.887-0.507,23.465,9.018,28.037 C461.347,321.479,482.595,292.638,482.595, \
                     292.638z");
-
 
     d3.select('#kite-group')
         .append('path')
@@ -235,31 +258,38 @@ onMounted(() => {
         .style('fill', colorScale.value(normalizeAngle(props.arrowAngle)));
 });
 
-onBeforeUpdate(() => {
-    const arrowAngle = props.arrowAngle;    
+// Note: The onBeforeUpdate lifecycle hook is removed as we now use dedicated watchers for each property change
 
-    d3.select('svg')
-        .select('#rotate_group')
+// Watch for changes to arc properties and update the visual accordingly
+watch([() => props.arcStart, () => props.arcEnd], () => {
+    console.log(`Arc settings changed: start=${props.arcStart}, end=${props.arcEnd}`);
+    // Update the arc when arcStart or arcEnd change
+    createOrUpdateArc();
+}, { immediate: false });
+
+// Watch for changes to arrow angle and update the rotation
+watch(() => props.arrowAngle, (newAngle) => {
+    console.log(`Arrow angle changed: ${newAngle}`);
+    // Update the arrow direction
+    d3.select('#rotate_group')
         .transition()
         .duration(800)
         .ease(d3.easeQuadInOut)
-        .attr('transform', `scale(0.5) rotate(${arrowAngle || 0} 0 0 )`);
-    d3.selectAll('#kite-group path')
+        .attr('transform', `scale(0.5) rotate(${newAngle || 0})`);
+    
+    // Update fill colors based on new angle
+    const normalizedAngle = normalizeAngle(newAngle);
+    d3.selectAll('#kite-group path, #kite-group circle')
         .transition()
         .duration(800)
-        .style('fill', colorScale.value(normalizeAngle(arrowAngle)));
-
-    d3.selectAll('#kite-group circle')
-        .transition()
-        .duration(800)
-        .style('fill', colorScale.value(normalizeAngle(arrowAngle)));
-
+        .style('fill', colorScale.value(normalizedAngle));
+    
+    // Update angle text
     d3.select('#angle-text')
         .transition()
         .duration(800)
-        .attr('text-anchor', 'middle')
-        .text(Math.round(props.arrowAngle) + '°');
-});
+        .text(Math.round(newAngle) + '°');
+}, { immediate: false });
 
 </script>
 <style lang="scss">

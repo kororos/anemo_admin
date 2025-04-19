@@ -1,25 +1,89 @@
 <template>
-  <div>
-  <q-icon :name="iconName()" :color="iconName() === 'check_circle' ? 'green' : 'red'" >
-    <template v-slot:default>
-      <q-tooltip content="WebSocket State" anchor="bottom middle">
-        {{ store.adminSocketReadyState === 1 ? "Connected" : "Disconnected" }}
+  <div class="websocket-state-icon">
+    <q-icon 
+      :name="connectionIcon" 
+      :color="connectionColor" 
+      :size="size" 
+      class="q-mr-xs"
+    >
+      <q-tooltip>
+        {{ connectionTooltip }}
       </q-tooltip>
-      </template>
-  </q-icon>
-</div>
+    </q-icon>
+    <span v-if="showText" class="text-caption">{{ connectionText }}</span>
+  </div>
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useWebSocketStore } from 'src/stores/webSocketStore';
 
-const store = useWebSocketStore();
-
-function iconName(){
-  if (store.adminSocketReadyState === 1) {
-    return 'check_circle';
-  } else {
-    return 'error';
+const props = defineProps({
+  size: {
+    type: String,
+    default: 'sm'
+  },
+  showText: {
+    type: Boolean,
+    default: false
   }
-}
+});
+
+const webSocketStore = useWebSocketStore();
+
+const connectionIcon = computed(() => {
+  switch (webSocketStore.connectionStatus) {
+    case 'connected':
+      return 'wifi';
+    case 'connecting':
+      return 'sync';
+    case 'disconnected':
+    case 'closing':
+    default:
+      return 'wifi_off';
+  }
+});
+
+const connectionColor = computed(() => {
+  switch (webSocketStore.connectionStatus) {
+    case 'connected':
+      return 'positive';
+    case 'connecting':
+      return 'warning';
+    case 'disconnected':
+    case 'closing':
+    default:
+      return 'negative';
+  }
+});
+
+const connectionText = computed(() => {
+  switch (webSocketStore.connectionStatus) {
+    case 'connected':
+      return 'Connected';
+    case 'connecting':
+      return 'Connecting...';
+    case 'closing':
+      return 'Closing...';
+    case 'disconnected':
+    default:
+      return 'Disconnected';
+  }
+});
+
+const connectionTooltip = computed(() => {
+  const baseTip = connectionText.value;
+  const lastMessage = webSocketStore.lastMessageTime 
+    ? `Last message: ${new Date(webSocketStore.lastMessageTime).toLocaleTimeString()}` 
+    : 'No messages received';
+  
+  return `${baseTip}\n${lastMessage}`;
+});
 </script>
+
+<style lang="scss" scoped>
+.websocket-state-icon {
+  display: inline-flex;
+  align-items: center;
+}
+</style>

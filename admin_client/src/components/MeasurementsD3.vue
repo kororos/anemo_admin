@@ -510,10 +510,6 @@ body.body--light {
 
 // Responsive adjustments for the chart
 @media (max-width: 600px) {
-  svg text {
-    font-size: 6px !important;
-  }
-  
   .chart-tooltip {
     font-size: 10px !important;
     padding: 6px 10px !important;

@@ -80,12 +80,61 @@ routes.post('/api/getClients', await checkRole(['admin']), (req, res, next) => {
 routes.get('/api/getKnownDevices', await checkRole(['admin', 'guest']), async (req, res, next) => {
     try {
         const devices = await db.Device.findAll({
-            attributes: ['id', ['name', 'clientId'], 'hwVersion', 'fwVersion', 'macAddress', 'lastConnection']
+            attributes: ['id', ['name', 'clientId'], 'hwVersion', 'fwVersion', 'macAddress', 'lastConnection', 'arcStart', 'arcEnd']
         });
         console.log("devices; ", JSON.stringify(devices, null, 2));
         res.json(devices);
     } catch (error) {
         res.status(403).send(error.message);
+    }
+});
+
+routes.put('/api/updateDeviceArc', await checkRole(['admin']), async (req, res, next) => {
+    try {
+        const { id, arcStart, arcEnd } = req.body;
+        
+        // Validate input
+        if (!id) {
+            return res.status(400).json({ message: 'Device ID is required' });
+        }
+        
+        // Convert to numbers or null for empty values
+        const start = arcStart === null || arcStart === '' || arcStart === undefined ? null : Number(arcStart);
+        const end = arcEnd === null || arcEnd === '' || arcEnd === undefined ? null : Number(arcEnd);
+        
+        // Validation for non-null values
+        if ((start !== null && (isNaN(start) || start < 0 || start > 360)) || 
+            (end !== null && (isNaN(end) || end < 0 || end > 360))) {
+            return res.status(400).json({ message: 'Arc values must be between 0 and 360 degrees' });
+        }
+        
+        // Ensure arcEnd is greater than arcStart only if both are provided
+        if (start !== null && end !== null && start >= end) {
+            return res.status(400).json({ message: 'Arc End must be greater than Arc Start' });
+        }
+        
+        // Update the device
+        const device = await db.Device.findByPk(id);
+        if (!device) {
+            return res.status(404).json({ message: 'Device not found' });
+        }
+        
+        await device.update({
+            arcStart: start,
+            arcEnd: end
+        });
+        
+        res.json({ 
+            message: 'Device arc settings updated successfully',
+            device: {
+                id: device.id,
+                arcStart: device.arcStart,
+                arcEnd: device.arcEnd
+            }
+        });
+    } catch (error) {
+        console.error('Error updating device arc settings:', error);
+        res.status(500).json({ message: 'An error occurred while updating device arc settings' });
     }
 });
 
