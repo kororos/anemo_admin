@@ -25,6 +25,7 @@ export default {
     database: process.env.DB_NAME_PROD || "anemo-admin-prod",
     host: process.env.DB_HOST_DEV || "127.0.0.1",
     dialect: "postgres",
+    logging: false,
     googleClientId: dockerSecret.read(process.env.GOOGLE_CLIENT_ID_PROD_FILE) || process.env.GOOGLE_CLIENT_ID_PROD,
     googleClientSecret: dockerSecret.read(process.env.GOOGLE_CLIENT_SECRET_PROD_FILE) || process.env.GOOGLE_CLIENT_SECRET_PROD,
   }
