@@ -15,10 +15,14 @@ RUN npm install
 # Copy the application code
 COPY . .
 
+RUN chmod +x entrypoint.sh
+
 RUN mkdir -p ./uploads
 
 # Expose the application port
 EXPOSE 3000
+
+ENTRYPOINT [ "./entrypoint.sh" ]
 
 # Define the command to run the application
 CMD ["npm", "run-script", "prod"]
