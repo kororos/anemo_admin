@@ -77,7 +77,7 @@ export const useWebSocketStore = defineStore("webSocket", () => {
         client.data = message.data;
         
         // When measurements are updated, trigger a device update if the device has changed
-        notifyDevicesStore();
+        //notifyDevicesStore();
       }
     }
   }
